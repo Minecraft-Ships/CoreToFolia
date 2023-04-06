@@ -12,7 +12,6 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import org.core.utils.entry.AbstractSnapshotValue;
 
-import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Set;
 import java.util.UUID;
@@ -175,7 +174,14 @@ public class EntitySnapshotValue<E, O> extends AbstractSnapshotValue<E, O> imple
             ArmorStand.class, ArmorStand::getRightLegPose, ArmorStand::setRightLegPose);
     public static final EntitySnapshotValue<ArmorStand, EulerAngle> RIGHT_ARM_POSE = new EntitySnapshotValue<>(
             ArmorStand.class, ArmorStand::getRightArmPose, ArmorStand::setRightArmPose);
-
+    public static final EntitySnapshotValue<ArmorStand, Boolean> ARMOR_STAND_VISIBLE = new EntitySnapshotValue<>(
+            ArmorStand.class, ArmorStand::isVisible, ArmorStand::setVisible);
+    public static final EntitySnapshotValue<ArmorStand, Boolean> ARMOR_STAND_MARKER = new EntitySnapshotValue<>(
+            ArmorStand.class, ArmorStand::isMarker, ArmorStand::setMarker);
+    public static final EntitySnapshotValue<ArmorStand, Boolean> ARMOR_STAND_SMALL = new EntitySnapshotValue<>(
+            ArmorStand.class, ArmorStand::isSmall, ArmorStand::setSmall);
+    public static final EntitySnapshotValue<ArmorStand, EulerAngle> BODY_POSE = new EntitySnapshotValue<>(
+            ArmorStand.class, ArmorStand::getBodyPose, ArmorStand::setBodyPose);
     public static final EntitySnapshotValue<ArmorStand, ItemStack> ARMOR_CHEST_EQUIPMENT = new EntitySnapshotValue<>(
             ArmorStand.class, stand -> stand.getEquipment().getItem(EquipmentSlot.CHEST),
             (stand, item) -> stand.getEquipment().setItem(EquipmentSlot.CHEST, item));
