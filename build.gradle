@@ -19,7 +19,7 @@ repositories {
 
 group = 'org.ships'
 version = '1.0-SNAPSHOT'
-description = 'CoreToBukkit'
+description = 'CoreToFolia'
 
 java.sourceCompatibility = JavaVersion.VERSION_17
 java.sourceCompatibility = JavaVersion.VERSION_17
@@ -34,7 +34,7 @@ tasks.register("buildPlugin", Jar) {
     def path = project.rootDir.path + "\\build\\"
     file(path).mkdirs()
     archiveClassifier = 'uber'
-    archiveFileName = 'TranslateCoreBukkit.jar'
+    archiveFileName = 'TranslateCoreFolia.jar'
     destinationDirectory = file(path)
 
 
@@ -53,11 +53,11 @@ tasks.register("buildPlugin", Jar) {
 }
 
 dependencies {
-    if (project.hasProperty("paper-api-version")) {
-        compileOnly 'dev.folia:folia-api:' + project.property("paper-api-version") + "-R0.1-SNAPSHOT"
+    if (project.hasProperty("folia-api-version")) {
+        compileOnly 'dev.folia:folia-api:' + project.property("folia-api-version") + "-R0.1-SNAPSHOT"
     } else {
-        compileOnly 'io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT'
-        System.out.println("To specify a paper build, use ' -P paper-api-version=1.17.1")
+        compileOnly 'dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT'
+        System.out.println("To specify a Folia build, use ' -P folia-api-version=1.19.4")
     }
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7', { exclude group: 'org.bukkit', module: 'bukkit' }
     try {
