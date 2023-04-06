@@ -1,0 +1,7 @@
+../CoreToFolia/.gradle/
+build/
+target/
+out/
+.idea
+.gradle
+

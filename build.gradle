@@ -1,0 +1,73 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = uri('https://papermc.io/repo/repository/maven-public/')
+    }
+
+    maven {
+        url = uri('https://jitpack.io')
+    }
+
+    maven {
+        url = uri('https://repo.maven.apache.org/maven2/')
+    }
+}
+
+group = 'org.ships'
+version = '1.0-SNAPSHOT'
+description = 'CoreToBukkit'
+
+java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_17
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.register("buildPlugin", Jar) {
+    def path = project.rootDir.path + "\\build\\"
+    file(path).mkdirs()
+    archiveClassifier = 'uber'
+    archiveFileName = 'TranslateCoreBukkit.jar'
+    destinationDirectory = file(path)
+
+
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll {
+            it.name.endsWith('jar') && !it.name.contains("junit") && !it.name.contains("hamcrest")
+        }.collect {
+            zipTree(it).matching {
+                exclude "*.txt"
+            }
+        }
+    }
+    println("Creating file in '" + path + "TranslateCore.jar'")
+}
+
+dependencies {
+    if (project.hasProperty("paper-api-version")) {
+        compileOnly 'dev.folia:folia-api:' + project.property("paper-api-version") + "-R0.1-SNAPSHOT"
+    } else {
+        compileOnly 'io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT'
+        System.out.println("To specify a paper build, use ' -P paper-api-version=1.17.1")
+    }
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7', { exclude group: 'org.bukkit', module: 'bukkit' }
+    try {
+        api project(":TranslateCore")
+    } catch (UnknownProjectException ignored) {
+        System.out.println("Could not find subModule of ShipsCore, using jit instead")
+        api 'com.github.Minecraft-Ships:TranslateCore:master-SNAPSHOT'
+    }
+    compileOnly group: 'net.kyori', name: 'examination-api', version: '1.1.0'
+    compileOnly group: 'net.kyori', name: 'adventure-api', version: '4.7.0'
+    compileOnly 'net.kyori:adventure-text-serializer-legacy:4.7.0'
+    compileOnly 'net.kyori:adventure-text-serializer-plain:4.7.0'
+}
