@@ -177,7 +177,7 @@ public class BukkitListener implements Listener {
         call(EventPriority.NORMAL, event1);
         for (int A = 0; A < 4; A++) {
             final int B = A;
-            event1.getTo().getTextAt(A).ifPresent(l -> event.line(B, ((AdventureText) l).getComponent());
+            event1.getTo().getTextAt(A).ifPresent(l -> event.line(B, ((AdventureText) l).getComponent()));
         } if (event1.isCancelled()) {
             event.setCancelled(event1.isCancelled());
         }

@@ -18,7 +18,6 @@ import org.core.implementation.folia.command.BCommandWrapper;
 import org.core.implementation.folia.logger.BJavaLogger;
 import org.core.implementation.folia.logger.BSLF4JLogger;
 import org.core.implementation.folia.platform.plugin.loader.CoreBukkitPluginWrapper;
-import org.core.implementation.paper.CoreToPaper;
 import org.core.logger.Logger;
 import org.core.platform.plugin.CorePlugin;
 import org.core.platform.plugin.loader.CommonLoad;
@@ -40,7 +39,7 @@ public class TranslateCoreBoot extends JavaPlugin {
         CoreToFolia core;
         try {
             Class.forName("com.destroystokyo.paper.event.block.BlockDestroyEvent");
-            core = new CoreToPaper();
+            core = new CoreToFolia();
         } catch (ClassNotFoundException e) {
             core = new CoreToFolia();
             this.getLogger().warning("Paper was not detected. ");
