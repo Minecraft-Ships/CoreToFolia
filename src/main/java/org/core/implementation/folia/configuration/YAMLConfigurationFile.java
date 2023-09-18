@@ -32,6 +32,11 @@ public class YAMLConfigurationFile implements ConfigurationStream.ConfigurationF
     }
 
     @Override
+    public void set(ConfigurationNode node, Map<String, ?> value) {
+        this.yaml.set(String.join(".", node.getPath()), value);
+    }
+
+    @Override
     public File getFile() {
         return this.file;
     }
