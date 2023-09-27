@@ -1,10 +1,13 @@
 package org.core.implementation.folia.entity.living.human.player.live;
 
+import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.core.adventureText.AText;
 import org.core.adventureText.adventure.AdventureText;
+import org.core.eco.Currency;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
 import org.core.implementation.folia.VaultService;
@@ -14,11 +17,11 @@ import org.core.implementation.folia.inventory.inventories.live.entity.BLivePlay
 import org.core.implementation.folia.world.position.impl.sync.BBlockPosition;
 import org.core.inventory.inventories.general.entity.PlayerInventory;
 import org.core.permission.Permission;
-import org.core.source.viewer.CommandViewer;
+import org.core.source.Messageable;
 import org.core.world.position.impl.BlockPosition;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,35 +66,14 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
     }
 
     @Override
-    public double getSaturationLevel() {
-        return this.getBukkitEntity().getSaturation();
-    }
-
-    @Override
-    public String getName() {
-        return this.getBukkitEntity().getName();
-    }
-
-    @Override
-    public UUID getUniqueId() {
-        return this.getBukkitEntity().getUniqueId();
-    }
-
-    @Override
-    public boolean isSneaking() {
-        return this.getBukkitEntity().isSneaking();
-    }
-
-    @Override
-    public LivePlayer setFood(int value) throws IndexOutOfBoundsException {
-        this.getBukkitEntity().setFoodLevel(value);
-        return this;
-    }
-
-    @Override
     public LivePlayer setExhaustionLevel(double value) throws IndexOutOfBoundsException {
         this.getBukkitEntity().setExhaustion((float) value);
         return this;
+    }
+
+    @Override
+    public double getSaturationLevel() {
+        return this.getBukkitEntity().getSaturation();
     }
 
     @Override
@@ -101,9 +83,30 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
     }
 
     @Override
+    public String getName() {
+        return this.getBukkitEntity().getName();
+    }
+
+    @Override
+    public boolean isSneaking() {
+        return this.getBukkitEntity().isSneaking();
+    }
+
+    @Override
     public LivePlayer setSneaking(boolean sneaking) {
         this.getBukkitEntity().setSneaking(sneaking);
         return this;
+    }
+
+    @Override
+    public LivePlayer setFood(int value) throws IndexOutOfBoundsException {
+        this.getBukkitEntity().setFoodLevel(value);
+        return this;
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return this.getBukkitEntity().getUniqueId();
     }
 
     @Override
@@ -137,22 +140,26 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
     }
 
     @Override
-    public CommandViewer sendMessage(AText message, UUID uuid) {
+    public LivePlayer sendMessage(AText message, UUID uuid) {
         this.getBukkitEntity().sendMessage(uuid, message.toLegacy());
         return this;
     }
 
     @Override
-    public CommandViewer sendMessage(AText message) {
+    public LivePlayer sendMessage(AText message) {
         Player player = this.getBukkitEntity();
-        try {
-            Class<?> componentClass = Class.forName("net.kyori.adventure.text.Component");
-            Method method = player.getClass().getMethod("sendMessage", componentClass);
-            method.invoke(player, ((AdventureText) message).getComponent());
-        } catch (ClassCastException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException |
-                 IllegalAccessException e) {
-            player.sendMessage(message.toLegacy());
+        if (message instanceof AdventureText text) {
+            return (LivePlayer) this.sendMessage(text.getComponent());
         }
+        player.sendMessage(message.toLegacy());
+        return this;
+    }
+
+    @Override
+    public Messageable sendMessage(@NotNull Component message, @Nullable UUID uuid) {
+        Identity identity = uuid == null ? Identity.nil() : Identity.identity(uuid);
+        Player player = this.getBukkitEntity();
+        player.sendMessage(identity, message);
         return this;
     }
 
@@ -162,12 +169,12 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
     }
 
     @Override
-    public BigDecimal getBalance() {
+    public BigDecimal getBalance(@NotNull Currency currency) {
         return BigDecimal.valueOf(VaultService.getBalance(this.getBukkitEntity()).orElse(0.0));
     }
 
     @Override
-    public void setBalance(BigDecimal decimal) {
+    public void setBalance(@NotNull Currency currency, @NotNull BigDecimal decimal) {
         VaultService.setBalance(this.getBukkitEntity(), decimal);
     }
 }

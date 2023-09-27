@@ -1,8 +1,10 @@
 package org.core.implementation.folia.entity.living.human.player.live;
 
 import org.bukkit.OfflinePlayer;
+import org.core.eco.Currency;
 import org.core.entity.living.human.player.User;
 import org.core.implementation.folia.VaultService;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -30,12 +32,12 @@ public class BUser implements User {
     }
 
     @Override
-    public BigDecimal getBalance() {
+    public BigDecimal getBalance(@NotNull Currency currency) {
         return BigDecimal.valueOf(VaultService.getBalance(this.getBukkitUser()).orElse(0.0));
     }
 
     @Override
-    public void setBalance(BigDecimal decimal) {
+    public void setBalance(@NotNull Currency currency, @NotNull BigDecimal decimal) {
         VaultService.setBalance(this.getBukkitUser(), decimal);
     }
 }

@@ -1,6 +1,7 @@
 package org.core.implementation.folia.entity.living.human.player.snapshot;
 
 import org.bukkit.entity.Player;
+import org.core.eco.Currency;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
 import org.core.implementation.folia.VaultService;
@@ -9,6 +10,7 @@ import org.core.implementation.folia.entity.BLiveEntity;
 import org.core.inventory.inventories.general.entity.PlayerInventory;
 import org.core.inventory.inventories.snapshots.entity.PlayerInventorySnapshot;
 import org.core.world.position.impl.sync.SyncExactPosition;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -51,11 +53,6 @@ public class BPlayerSnapshot extends BEntitySnapshot<LivePlayer> implements Play
     }
 
     @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
     public UUID getUniqueId() {
         return this.createdFrom.getUniqueId();
     }
@@ -63,6 +60,11 @@ public class BPlayerSnapshot extends BEntitySnapshot<LivePlayer> implements Play
     @Override
     public LivePlayer spawnEntity() {
         return this.teleportEntity(false);
+    }
+
+    @Override
+    public PlayerSnapshot createSnapshot() {
+        return new BPlayerSnapshot(this);
     }
 
     @Override
@@ -99,25 +101,14 @@ public class BPlayerSnapshot extends BEntitySnapshot<LivePlayer> implements Play
     }
 
     @Override
-    public double getSaturationLevel() {
-        return this.saturationLevel;
-    }
-
-    @Override
-    public boolean isSneaking() {
-        return this.sneaking;
-    }
-
-    @Override
-    public PlayerSnapshot setFood(int value) {
-        this.foodLevel = value;
-        return this;
-    }
-
-    @Override
     public PlayerSnapshot setExhaustionLevel(double value) {
         this.exhaustionLevel = value;
         return this;
+    }
+
+    @Override
+    public double getSaturationLevel() {
+        return this.saturationLevel;
     }
 
     @Override
@@ -127,24 +118,35 @@ public class BPlayerSnapshot extends BEntitySnapshot<LivePlayer> implements Play
     }
 
     @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public boolean isSneaking() {
+        return this.sneaking;
+    }
+
+    @Override
     public PlayerSnapshot setSneaking(boolean sneaking) {
         this.sneaking = sneaking;
         return this;
     }
 
     @Override
-    public PlayerSnapshot createSnapshot() {
-        return new BPlayerSnapshot(this);
+    public PlayerSnapshot setFood(int value) {
+        this.foodLevel = value;
+        return this;
     }
 
     @Override
-    public BigDecimal getBalance() {
+    public BigDecimal getBalance(@NotNull Currency currency) {
         return BigDecimal.valueOf(
                 VaultService.getBalance(((BLiveEntity<Player>) this.createdFrom).getBukkitEntity()).orElse(0.0));
     }
 
     @Override
-    public void setBalance(BigDecimal decimal) {
+    public void setBalance(@NotNull Currency currency, @NotNull BigDecimal decimal) {
         VaultService.setBalance(((BLiveEntity<Player>) this.createdFrom).getBukkitEntity(), decimal);
     }
 }

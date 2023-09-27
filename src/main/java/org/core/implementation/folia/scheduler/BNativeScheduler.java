@@ -2,6 +2,7 @@ package org.core.implementation.folia.scheduler;
 
 import org.bukkit.Bukkit;
 import org.core.TranslateCore;
+import org.core.implementation.folia.scheduler.type.ScheduleType;
 import org.core.platform.plugin.Plugin;
 import org.core.schedule.Scheduler;
 import org.core.schedule.SchedulerBuilder;
@@ -64,6 +65,7 @@ public class BNativeScheduler implements Scheduler.Native {
     protected final @NotNull String displayName;
     protected final boolean async;
     protected final @NotNull Plugin plugin;
+    private final ScheduleType scheduleType;
     protected @Nullable Scheduler runAfter;
     protected int task;
     private @Nullable String parent;
@@ -71,7 +73,10 @@ public class BNativeScheduler implements Scheduler.Native {
     private LocalTime startSchedule;
     private LocalTime startRunner;
 
-    public BNativeScheduler(@NotNull SchedulerBuilder builder, @NotNull Plugin plugin) {
+    public BNativeScheduler(@NotNull SchedulerBuilder builder,
+                            @NotNull Plugin plugin,
+                            @NotNull ScheduleType scheduleType) {
+        this.scheduleType = scheduleType;
         this.taskToRun = builder.getRunner();
         this.iteration = builder.getIteration().orElse(null);
         this.iterationTimeUnit = builder.getIterationUnit().orElse(TimeUnit.MINECRAFT_TICKS);
@@ -125,34 +130,8 @@ public class BNativeScheduler implements Scheduler.Native {
             iter = this.iterationTimeUnit.toTicks(this.iteration);
         }
         Runnable runAfterScheduler = new RunAfterScheduler();
-        if (iter == null) {
-            if (this.async) {
-                this.task = Bukkit
-                        .getScheduler()
-                        .scheduleAsyncDelayedTask((org.bukkit.plugin.Plugin) this.plugin.getPlatformLauncher(),
-                                                  runAfterScheduler, ticks);
-                return;
-            }
-            this.task = Bukkit
-                    .getScheduler()
-                    .scheduleSyncDelayedTask((org.bukkit.plugin.Plugin) this.plugin.getPlatformLauncher(),
-                                             runAfterScheduler, ticks);
-
-            return;
-        }
-        if (this.async) {
-            this.task = Bukkit
-                    .getScheduler()
-                    .scheduleAsyncRepeatingTask((org.bukkit.plugin.Plugin) this.plugin.getPlatformLauncher(),
-                                                runAfterScheduler, ticks, iter);
-            return;
-        }
-        this.task = Bukkit
-                .getScheduler()
-                .scheduleSyncRepeatingTask((org.bukkit.plugin.Plugin) this.plugin.getPlatformLauncher(),
-                                           runAfterScheduler, ticks, iter);
-
-
+        this.task = this.scheduleType.start((org.bukkit.plugin.Plugin) this.plugin.getPlatformLauncher(),
+                                            runAfterScheduler, ticks, iter);
     }
 
     @Override

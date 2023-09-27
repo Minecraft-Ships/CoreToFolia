@@ -3,10 +3,11 @@ package org.core.implementation.folia;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.core.TranslateCore;
-import org.core.config.ConfigurationFormat;
-import org.core.config.ConfigurationStream;
+import org.core.config.ConfigManager;
+import org.core.eco.CurrencyManager;
 import org.core.event.EventManager;
-import org.core.implementation.folia.configuration.YAMLConfigurationFile;
+import org.core.implementation.folia.configuration.FConfigManager;
+import org.core.implementation.folia.eco.FCurrencyManager;
 import org.core.implementation.folia.event.BEventManager;
 import org.core.implementation.folia.event.BukkitListener;
 import org.core.implementation.folia.event.PaperListener;
@@ -21,8 +22,6 @@ import org.core.schedule.ScheduleManager;
 import org.core.source.command.ConsoleSource;
 import org.core.world.boss.ServerBossBar;
 
-import java.io.File;
-
 public class CoreToFolia extends TranslateCore.CoreImplementation {
 
     protected final BukkitPlatform platform = new BukkitPlatform();
@@ -30,6 +29,8 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
     protected final BEventManager manager = new BEventManager();
     protected final BServer server = new BServer();
     protected final PlatformConsole console = new PlatformConsole();
+    private final ConfigManager configManager = new FConfigManager();
+    private final CurrencyManager currencyManager = new FCurrencyManager();
 
     public CoreToFolia() {
         this.init();
@@ -67,29 +68,6 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
     }
 
     @Override
-    public ConfigurationStream.ConfigurationFile createRawConfigurationFile(File file, ConfigurationFormat type) {
-        if (file == null) {
-            throw new IllegalStateException("File cannot be null");
-        }
-        if (type == null) {
-            throw new IllegalStateException("ConfigurationFormat cannot be null");
-        }
-        boolean check = false;
-        for (String fileExt : type.getFileType()) {
-            if (file.getName().endsWith(fileExt)) {
-                check = true;
-            }
-        }
-        if (!check) {
-            throw new IllegalStateException("Unknown file type");
-        }
-        if (type.equals(ConfigurationFormat.FORMAT_YAML)) {
-            return new YAMLConfigurationFile(file);
-        }
-        throw new IllegalStateException("ConfigurationFormat is not supported: " + type.getName());
-    }
-
-    @Override
     public PlatformServer getRawServer() {
         return this.server;
     }
@@ -97,5 +75,15 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
     @Override
     public ServerBossBar bossBuilder() {
         return new BServerBossBar();
+    }
+
+    @Override
+    public ConfigManager getRawConfigManager() {
+        return this.configManager;
+    }
+
+    @Override
+    public CurrencyManager getRawCurrencyManager() {
+        return this.currencyManager;
     }
 }
