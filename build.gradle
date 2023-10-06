@@ -76,6 +76,9 @@ jar {
 }
 
 dependencies {
+    if(project.hasProperty("folia-api-version") && project.hasProperty("use-paper") && project.property("use-paper").toString().equals("true")){
+        compileOnly 'io.papermc.paper:paper-api:' + project.property("folia-api-version") + "-R0.1-SNAPSHOT"
+    }else
     if (project.hasProperty("folia-api-version")) {
         compileOnly 'dev.folia:folia-api:' + project.property("folia-api-version") + "-R0.1-SNAPSHOT"
     } else {
