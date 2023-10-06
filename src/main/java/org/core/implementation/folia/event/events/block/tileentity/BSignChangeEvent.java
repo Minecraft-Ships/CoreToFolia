@@ -1,53 +1,55 @@
 package org.core.implementation.folia.event.events.block.tileentity;
 
-import org.core.adventureText.AText;
+import net.kyori.adventure.text.Component;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.event.events.block.tileentity.SignChangeEvent;
-import org.core.implementation.folia.world.position.block.entity.sign.BSignEntitySnapshot;
+import org.core.implementation.folia.world.position.block.entity.sign.FSignSideSnapshot;
+import org.core.world.position.block.entity.sign.SignSide;
 import org.core.world.position.block.entity.sign.SignTileEntitySnapshot;
 import org.core.world.position.impl.sync.SyncBlockPosition;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 public class BSignChangeEvent implements SignChangeEvent.ByPlayer {
 
-    protected final SignTileEntitySnapshot original;
+    protected final FSignSideSnapshot original;
     protected final SyncBlockPosition position;
     protected final LivePlayer player;
+    private final FSignSideSnapshot to;
     protected boolean isCancelled;
-    protected SignTileEntitySnapshot to;
 
-    public BSignChangeEvent(LivePlayer player, SyncBlockPosition position, AText... text) {
-        this(player, position, Arrays.asList(text));
-    }
-
-    public BSignChangeEvent(LivePlayer player, SyncBlockPosition position, Collection<? extends AText> lines) {
+    public BSignChangeEvent(LivePlayer player,
+                            SyncBlockPosition position,
+                            FSignSideSnapshot previous,
+                            FSignSideSnapshot to) {
         this.position = position;
-        this.original = new BSignEntitySnapshot(lines);
+        this.original = previous;
         this.player = player;
-        this.to = new BSignEntitySnapshot(lines);
-    }
-
-    public BSignChangeEvent(LivePlayer player, SyncBlockPosition position) {
-        this(player, position, Collections.emptyList());
+        this.to = to;
     }
 
     @Override
-    public SignTileEntitySnapshot getTo() {
+    public SignTileEntitySnapshot getSign() {
+        return this.original.getSign();
+    }
+
+    @Override
+    public SignSide getPreviousSide() {
+        return this.original;
+    }
+
+    @Override
+    public SignSide getChangingSide() {
         return this.to;
     }
 
     @Override
-    public SignChangeEvent setTo(SignTileEntitySnapshot snapshot) {
-        this.to = snapshot;
-        return this;
-    }
-
-    @Override
-    public SignTileEntitySnapshot getFrom() {
-        return this.original;
+    public boolean isEdit() {
+        List<Component> lines = this.getPreviousSide().getLines();
+        if (lines.isEmpty()) {
+            return false;
+        }
+        return !lines.stream().allMatch(line -> line.equals(Component.empty()));
     }
 
     @Override

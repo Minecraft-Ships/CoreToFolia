@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,8 +41,11 @@ import org.core.implementation.folia.world.expload.EntityExplosion;
 import org.core.implementation.folia.world.expload.EntityExplosionSnapshot;
 import org.core.implementation.folia.world.position.block.details.blocks.BBlockDetails;
 import org.core.implementation.folia.world.position.block.details.blocks.BlockStateSnapshot;
+import org.core.implementation.folia.world.position.block.entity.sign.BSignEntitySnapshot;
+import org.core.implementation.folia.world.position.block.entity.sign.FSignSideSnapshot;
 import org.core.implementation.folia.world.position.impl.sync.BBlockPosition;
 import org.core.implementation.folia.world.position.impl.sync.BExactPosition;
+import org.core.utils.Else;
 import org.core.world.position.block.details.BlockDetails;
 import org.core.world.position.block.details.BlockSnapshot;
 import org.core.world.position.impl.sync.SyncBlockPosition;
@@ -169,17 +173,52 @@ public class BukkitListener implements Listener {
 
     @EventHandler
     public static void onSignChangeEvent(SignChangeEvent event) {
-        List<AText> lines = event.lines().stream().map(AdventureText::new).collect(Collectors.toList());
+        Sign sign = (Sign)event.getBlock().getState();
         LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
         SyncBlockPosition position = new BBlockPosition(event.getBlock());
-        BSignChangeEvent event1 = new BSignChangeEvent(player, position, lines);
-        call(EventPriority.NORMAL, event1);
-        for (int A = 0; A < 4; A++) {
-            final int B = A;
-            event1.getTo().getTextAt(A).ifPresent(l -> event.line(B, ((AdventureText) l).getComponent()));
-        } if (event1.isCancelled()) {
-            event.setCancelled(event1.isCancelled());
+
+        BSignEntitySnapshot snapshot = new BSignEntitySnapshot();
+
+
+
+        boolean front = true;
+        BSignChangeEvent coreEvent;
+        try {
+            Object side = event.getClass().getMethod("getSide").invoke(event);
+            Object frontSide = side.getClass().getField("FRONT").get(null);
+            front = (side == frontSide);
+
+            Object signSide = sign.getClass().getDeclaredMethod("getSide", side.getClass()).invoke(sign, side);
+            Collection<Component> previousLines = (List<Component>)signSide.getClass().getDeclaredMethod("lines").invoke(signSide);
+            boolean previousGlowing = (boolean)signSide.getClass().getDeclaredMethod("isGlowingText").invoke(signSide);
+            FSignSideSnapshot previousSideSnapshot = (FSignSideSnapshot) snapshot.getSide(front);
+            previousSideSnapshot.setGlowing(previousGlowing);
+            previousSideSnapshot.setLines(previousLines);
+
+            FSignSideSnapshot newSideSnapshot = new FSignSideSnapshot(snapshot, front, event.lines());
+            newSideSnapshot.setGlowing(previousGlowing);
+
+            coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException ignore) {
+            List<Component> previousLines = sign.lines();
+            boolean glowing = Else.throwOr(Throwable.class, () -> (boolean)sign.getClass().getMethod("isGlowingText").invoke(sign), false);
+
+            FSignSideSnapshot previousSideSnapshot = new FSignSideSnapshot(snapshot, true, previousLines);
+            previousSideSnapshot.setGlowing(glowing);
+
+            FSignSideSnapshot newSideSnapshot = new FSignSideSnapshot(snapshot, true, event.lines());
+            newSideSnapshot.setGlowing(glowing);
+
+            coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
+        }
+
+        call(EventPriority.NORMAL, coreEvent);
+        for (int line = 0; line < 4; line++) {
+            event.line(line, coreEvent.getChangingSide().getLineAt(line).orElse(null));
+        }
+        if (coreEvent.isCancelled()) {
+            event.setCancelled(coreEvent.isCancelled());
         }
     }
 
