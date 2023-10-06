@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.core.adventureText.AText;
 import org.core.adventureText.adventure.AdventureText;
 import org.core.source.command.ConsoleSource;
-import org.core.source.viewer.CommandViewer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,17 +23,17 @@ public class PlatformConsole implements ConsoleSource {
     @Override
     public PlatformConsole sendMessage(AText message) {
         if (message instanceof AdventureText adventureText) {
-            return (PlatformConsole) this.sendMessage(adventureText.getComponent());
+            this.sendMessage(adventureText.getComponent());
+            return this;
         }
         Bukkit.getConsoleSender().sendMessage(message.toLegacy());
         return this;
     }
 
     @Override
-    public PlatformConsole sendMessage(@NotNull Component message, @Nullable UUID uuid) {
+    public void sendMessage(@NotNull Component message, @Nullable UUID uuid) {
         Identity identity = uuid == null ? Identity.nil() : Identity.identity(uuid);
         Bukkit.getConsoleSender().sendMessage(identity, message);
-        return this;
     }
 
     @Override

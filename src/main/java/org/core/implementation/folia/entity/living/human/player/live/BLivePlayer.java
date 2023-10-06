@@ -17,7 +17,6 @@ import org.core.implementation.folia.inventory.inventories.live.entity.BLivePlay
 import org.core.implementation.folia.world.position.impl.sync.BBlockPosition;
 import org.core.inventory.inventories.general.entity.PlayerInventory;
 import org.core.permission.Permission;
-import org.core.source.Messageable;
 import org.core.world.position.impl.BlockPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -149,18 +148,18 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
     public LivePlayer sendMessage(AText message) {
         Player player = this.getBukkitEntity();
         if (message instanceof AdventureText text) {
-            return (LivePlayer) this.sendMessage(text.getComponent());
+            this.sendMessage(text.getComponent());
+            return this;
         }
         player.sendMessage(message.toLegacy());
         return this;
     }
 
     @Override
-    public Messageable sendMessage(@NotNull Component message, @Nullable UUID uuid) {
+    public void sendMessage(@NotNull Component message, @Nullable UUID uuid) {
         Identity identity = uuid == null ? Identity.nil() : Identity.identity(uuid);
         Player player = this.getBukkitEntity();
         player.sendMessage(identity, message);
-        return this;
     }
 
     @Override

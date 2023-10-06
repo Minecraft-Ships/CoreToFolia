@@ -94,12 +94,7 @@ public class TranslateCoreBoot extends JavaPlugin {
     @Override
     public void onDisable() {
         this.plugins.forEach(CorePlugin::onShutdown);
-        TranslateCore
-                .getScheduleManager()
-                .getSchedules()
-                .parallelStream()
-                .filter(sch -> sch instanceof Scheduler.Native)
-                .forEach(sch -> ((Scheduler.Native) sch).cancel());
+        TranslateCore.getScheduleManager().getSchedules().parallelStream().forEach(Scheduler::cancel);
 
     }
 

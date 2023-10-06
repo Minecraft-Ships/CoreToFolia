@@ -5,6 +5,7 @@ import org.core.adventureText.AText;
 import org.core.adventureText.adventure.AdventureText;
 import org.core.implementation.folia.world.position.block.entity.AbstractLiveTileEntity;
 import org.core.world.position.block.entity.sign.LiveSignTileEntity;
+import org.core.world.position.block.entity.sign.SignSide;
 import org.core.world.position.block.entity.sign.SignTileEntity;
 import org.core.world.position.block.entity.sign.SignTileEntitySnapshot;
 
@@ -28,6 +29,28 @@ public class BSignEntity extends AbstractLiveTileEntity implements LiveSignTileE
     }
 
     @Override
+    public SignTileEntitySnapshot getSnapshot() {
+        return new BSignEntitySnapshot(this);
+    }
+
+    @Override
+    public SignSide getSide(boolean frontSide) {
+        if (this.isMultiSideSupported()) {
+            //TODO
+        }
+        if (frontSide) {
+            return new FLiveLegacySignSide(this.getBukkitSign());
+        }
+        throw new IllegalStateException("multi-sign is only supported on 1.20+");
+    }
+
+    @Override
+    public boolean isMultiSideSupported() {
+        //TODO
+        return false;
+    }
+
+    @Override
     public List<AText> getText() {
         return this.getBukkitSign().lines().stream().map(AdventureText::new).collect(Collectors.toList());
     }
@@ -37,15 +60,10 @@ public class BSignEntity extends AbstractLiveTileEntity implements LiveSignTileE
         int i = 0;
         Sign sign = this.getBukkitSign();
         for (AText line : text) {
-            sign.line(i, ((AdventureText)line).getComponent());
+            sign.line(i, ((AdventureText) line).getComponent());
             i++;
         }
         sign.update(true, false);
         return this;
-    }
-
-    @Override
-    public SignTileEntitySnapshot getSnapshot() {
-        return new BSignEntitySnapshot(this);
     }
 }
