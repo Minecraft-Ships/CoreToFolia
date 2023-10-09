@@ -37,7 +37,7 @@ task plugin {
         excludePluginYaml = true
 
         if (excludePluginYaml) {
-            def pluginFile = file(project.buildDir.path + '/resources/main/plugin.yml')
+            def pluginFile = file(project.buildDir.path + '/resources/main/paper-plugin.yml')
             def ex = pluginFile.exists()
             pluginFile.delete()
         }
@@ -58,7 +58,7 @@ jar {
         destinationDirectory = file(path)
 
         if (excludePluginYaml) {
-            exclude("plugin.yml")
+            exclude("paper-plugin.yml")
         }
 
         from sourceSets.main.output
@@ -76,10 +76,9 @@ jar {
 }
 
 dependencies {
-    if(project.hasProperty("folia-api-version") && project.hasProperty("use-paper") && project.property("use-paper").toString().equals("true")){
+    if (project.hasProperty("folia-api-version") && project.hasProperty("use-paper") && project.property("use-paper").toString().equals("true")) {
         compileOnly 'io.papermc.paper:paper-api:' + project.property("folia-api-version") + "-R0.1-SNAPSHOT"
-    }else
-    if (project.hasProperty("folia-api-version")) {
+    } else if (project.hasProperty("folia-api-version")) {
         compileOnly 'dev.folia:folia-api:' + project.property("folia-api-version") + "-R0.1-SNAPSHOT"
     } else {
         compileOnly 'dev.folia:folia-api:1.20.1-R0.1-SNAPSHOT'

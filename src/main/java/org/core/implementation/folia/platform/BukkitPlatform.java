@@ -100,6 +100,9 @@ public class BukkitPlatform implements Platform {
 
     public void init() {
         for (Material material : Material.values()) {
+            if(material.isLegacy()){
+                continue;
+            }
             if (material.isBlock()) {
                 BlockType type = new BBlockType(material);
                 this.blockTypes.add(type);
