@@ -1,18 +1,12 @@
 package org.core.implementation.folia.entity.living.human.player.snapshot;
 
-import org.bukkit.entity.Player;
-import org.core.eco.Currency;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
-import org.core.implementation.folia.eco.vault.VaultService;
 import org.core.implementation.folia.entity.BEntitySnapshot;
-import org.core.implementation.folia.entity.BLiveEntity;
 import org.core.inventory.inventories.general.entity.PlayerInventory;
 import org.core.inventory.inventories.snapshots.entity.PlayerInventorySnapshot;
 import org.core.world.position.impl.sync.SyncExactPosition;
-import org.jetbrains.annotations.NotNull;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 public class BPlayerSnapshot extends BEntitySnapshot<LivePlayer> implements PlayerSnapshot {
@@ -137,16 +131,5 @@ public class BPlayerSnapshot extends BEntitySnapshot<LivePlayer> implements Play
     public PlayerSnapshot setFood(int value) {
         this.foodLevel = value;
         return this;
-    }
-
-    @Override
-    public BigDecimal getBalance(@NotNull Currency currency) {
-        return BigDecimal.valueOf(
-                VaultService.getBalance(((BLiveEntity<Player>) this.createdFrom).getBukkitEntity()).orElse(0.0));
-    }
-
-    @Override
-    public void setBalance(@NotNull Currency currency, @NotNull BigDecimal decimal) {
-        VaultService.setBalance(((BLiveEntity<Player>) this.createdFrom).getBukkitEntity(), decimal);
     }
 }

@@ -1,13 +1,16 @@
 package org.core.implementation.folia.entity.living.human.player.live;
 
 import org.bukkit.OfflinePlayer;
+import org.core.TranslateCore;
 import org.core.eco.Currency;
 import org.core.entity.living.human.player.User;
-import org.core.implementation.folia.eco.vault.VaultService;
+import org.core.source.eco.PlayerAccount;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class BUser implements User {
 

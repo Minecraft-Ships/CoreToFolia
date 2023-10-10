@@ -7,10 +7,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.core.adventureText.AText;
 import org.core.adventureText.adventure.AdventureText;
-import org.core.eco.Currency;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
-import org.core.implementation.folia.eco.vault.VaultService;
 import org.core.implementation.folia.entity.BLiveEntity;
 import org.core.implementation.folia.entity.living.human.player.snapshot.BPlayerSnapshot;
 import org.core.implementation.folia.inventory.inventories.live.entity.BLivePlayerInventory;
@@ -21,7 +19,6 @@ import org.core.world.position.impl.BlockPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -165,15 +162,5 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
     @Override
     public boolean sudo(String wholeCommand) {
         return Bukkit.dispatchCommand(this.getBukkitEntity(), wholeCommand);
-    }
-
-    @Override
-    public BigDecimal getBalance(@NotNull Currency currency) {
-        return BigDecimal.valueOf(VaultService.getBalance(this.getBukkitEntity()).orElse(0.0));
-    }
-
-    @Override
-    public void setBalance(@NotNull Currency currency, @NotNull BigDecimal decimal) {
-        VaultService.setBalance(this.getBukkitEntity(), decimal);
     }
 }
