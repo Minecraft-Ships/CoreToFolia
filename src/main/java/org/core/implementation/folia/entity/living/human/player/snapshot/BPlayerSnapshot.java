@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.core.eco.Currency;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
-import org.core.implementation.folia.VaultService;
+import org.core.implementation.folia.eco.vault.VaultService;
 import org.core.implementation.folia.entity.BEntitySnapshot;
 import org.core.implementation.folia.entity.BLiveEntity;
 import org.core.inventory.inventories.general.entity.PlayerInventory;

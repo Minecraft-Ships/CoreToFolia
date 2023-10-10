@@ -1,14 +1,15 @@
-package org.core.implementation.folia;
+package org.core.implementation.folia.eco.vault;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
-public interface VaultService {
+interface VaultService {
 
     static Optional<Double> getBalance(OfflinePlayer user) {
         Optional<Economy> opEco = getEconomy();
@@ -41,6 +42,8 @@ public interface VaultService {
         if (Bukkit.getPluginManager().getPlugin("vault") == null) {
             return Optional.empty();
         }
-        return Optional.of(Bukkit.getServicesManager().getRegistration(Economy.class).getProvider());
+        return Optional
+                .ofNullable(Bukkit.getServicesManager().getRegistration(Economy.class))
+                .map(RegisteredServiceProvider::getProvider);
     }
 }

@@ -10,7 +10,7 @@ import org.core.adventureText.adventure.AdventureText;
 import org.core.eco.Currency;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
-import org.core.implementation.folia.VaultService;
+import org.core.implementation.folia.eco.vault.VaultService;
 import org.core.implementation.folia.entity.BLiveEntity;
 import org.core.implementation.folia.entity.living.human.player.snapshot.BPlayerSnapshot;
 import org.core.implementation.folia.inventory.inventories.live.entity.BLivePlayerInventory;

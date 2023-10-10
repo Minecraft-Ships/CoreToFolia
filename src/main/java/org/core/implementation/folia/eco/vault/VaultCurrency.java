@@ -1,4 +1,4 @@
-package org.core.implementation.folia.eco;
+package org.core.implementation.folia.eco.vault;
 
 import net.kyori.adventure.text.Component;
 import org.core.eco.Currency;

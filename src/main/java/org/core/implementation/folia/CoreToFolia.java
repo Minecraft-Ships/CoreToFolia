@@ -7,7 +7,7 @@ import org.core.config.ConfigManager;
 import org.core.eco.CurrencyManager;
 import org.core.event.EventManager;
 import org.core.implementation.folia.configuration.FConfigManager;
-import org.core.implementation.folia.eco.FCurrencyManager;
+import org.core.implementation.folia.eco.vault.VaultCurrencyManager;
 import org.core.implementation.folia.event.BEventManager;
 import org.core.implementation.folia.event.BukkitListener;
 import org.core.implementation.folia.event.PaperListener;
@@ -30,7 +30,7 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
     protected final BServer server = new BServer();
     protected final PlatformConsole console = new PlatformConsole();
     private final ConfigManager configManager = new FConfigManager();
-    private final CurrencyManager currencyManager = new FCurrencyManager();
+    private final CurrencyManager currencyManager = new VaultCurrencyManager();
 
     public CoreToFolia() {
         this.init();
