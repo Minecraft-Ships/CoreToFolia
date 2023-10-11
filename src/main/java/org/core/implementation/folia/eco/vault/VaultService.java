@@ -16,14 +16,30 @@ interface VaultService {
         return opEco.map(economy -> economy.getBalance(user));
     }
 
-    static void setBalance(OfflinePlayer user, BigDecimal price) {
-        setBalance(user, price.doubleValue());
-    }
-
-    static void setBalance(OfflinePlayer user, double price) {
+    static EconomyResponse withdraw(OfflinePlayer user, double price) {
         Optional<Economy> opEco = getEconomy();
         if (opEco.isEmpty()) {
-            return;
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "No economy found");
+        }
+        return opEco.get().withdrawPlayer(user, price);
+    }
+
+    static EconomyResponse deposit(OfflinePlayer user, double price) {
+        Optional<Economy> opEco = getEconomy();
+        if (opEco.isEmpty()) {
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "No economy found");
+        }
+        return opEco.get().depositPlayer(user, price);
+    }
+
+    static EconomyResponse setBalance(OfflinePlayer user, BigDecimal price) {
+        return setBalance(user, price.doubleValue());
+    }
+
+    static EconomyResponse setBalance(OfflinePlayer user, double price) {
+        Optional<Economy> opEco = getEconomy();
+        if (opEco.isEmpty()) {
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "No economy found");
         }
         double bal = opEco.get().getBalance(user);
         double diff = (-bal) + price;
@@ -36,6 +52,7 @@ interface VaultService {
         if (!response.transactionSuccess()) {
             throw new IllegalStateException(response.errorMessage);
         }
+        return response;
     }
 
     static Optional<Economy> getEconomy() {
