@@ -3,8 +3,8 @@ package org.core.implementation.folia.eco;
 import org.core.eco.Currency;
 import org.core.eco.CurrencyManager;
 import org.core.implementation.folia.eco.vault.VaultCurrencyManager;
-import org.core.source.eco.NamedAccount;
-import org.core.source.eco.PlayerAccount;
+import org.core.eco.account.NamedAccount;
+import org.core.eco.account.PlayerAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -3,9 +3,9 @@ package org.core.implementation.folia.eco.vault;
 import org.core.TranslateCore;
 import org.core.eco.Currency;
 import org.core.eco.CurrencyManager;
-import org.core.entity.living.human.player.User;
-import org.core.source.eco.NamedAccount;
-import org.core.source.eco.PlayerAccount;
+import org.core.implementation.folia.entity.living.human.player.live.BUser;
+import org.core.eco.account.NamedAccount;
+import org.core.eco.account.PlayerAccount;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -45,7 +45,11 @@ public class VaultCurrencyManager implements CurrencyManager {
 
     @Override
     public @NotNull CompletableFuture<Optional<PlayerAccount>> getSourceFor(@NotNull UUID uuid) {
-        return TranslateCore.getServer().getOfflineUser(uuid).thenApply(op -> op.flatMap(User::getAccount));
+        return TranslateCore
+                .getServer()
+                .getOfflineUser(uuid)
+                .thenApply(
+                        op -> op.map(user -> (BUser) user).map(user -> new PlayerVaultAccount(user.getBukkitUser())));
     }
 
     public static boolean canUseVault() {

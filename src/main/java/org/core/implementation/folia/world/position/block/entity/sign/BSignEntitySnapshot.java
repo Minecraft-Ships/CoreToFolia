@@ -1,7 +1,6 @@
 package org.core.implementation.folia.world.position.block.entity.sign;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.block.Sign;
 import org.core.adventureText.AText;
 import org.core.adventureText.adventure.AdventureText;
 import org.core.utils.ComponentUtils;
@@ -21,15 +20,15 @@ import java.util.stream.Collectors;
 
 public class BSignEntitySnapshot implements SignTileEntitySnapshot {
 
-    private FSignSideSnapshot front;
-    private FSignSideSnapshot back;
+    private final FSignSideSnapshot front;
+    private final FSignSideSnapshot back;
 
     public BSignEntitySnapshot(SignTileEntity entity) {
         this.front = new FSignSideSnapshot(this, true, entity.getFront().getLines());
         this.front.setGlowing(entity.getFront().isGlowing());
 
         this.back = entity.getBack().map(side -> {
-            var newSide = new FSignSideSnapshot(this, false, side.getLines());
+            FSignSideSnapshot newSide = new FSignSideSnapshot(this, false, side.getLines());
             newSide.setGlowing(side.isGlowing());
             return newSide;
         }).orElseGet(() -> new FSignSideSnapshot(this, false));
@@ -47,8 +46,8 @@ public class BSignEntitySnapshot implements SignTileEntitySnapshot {
 
     @Override
     public LiveSignTileEntity apply(LiveSignTileEntity lste) {
-        apply(lste.getFront());
-        lste.getBack().ifPresent(this::apply);
+        applyTo(lste.getFront());
+        lste.getBack().ifPresent(this::applyTo);
         return lste;
     }
 
@@ -57,10 +56,10 @@ public class BSignEntitySnapshot implements SignTileEntitySnapshot {
         return BlockTypes.OAK_SIGN.getLike();
     }
 
-    private void apply(SignSide side) {
-        SignSide to = this.getSide(side.isFront());
-        to.setLines(side.getLines());
-        to.setGlowing(side.isGlowing());
+    private void applyTo(SignSide side) {
+        SignSide from = this.getSide(side.isFront());
+        side.setLines(from.getLines());
+        side.setGlowing(from.isGlowing());
     }
 
     @Override
@@ -76,8 +75,9 @@ public class BSignEntitySnapshot implements SignTileEntitySnapshot {
     @Override
     public boolean isMultiSideSupported() {
         return Else.throwOr(Exception.class, () -> {
-            Sign.class.getClass().getDeclaredMethod("");
-            return true;
+            /*Sign.class.getDeclaredMethod("getSide", Class.forName("org.bukkit.block.sign.Side"));
+            return true;*/
+            return false;
         }, false);
     }
 

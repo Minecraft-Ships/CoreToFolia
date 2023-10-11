@@ -1,6 +1,6 @@
 name: TranslateCore
 version: 1.0.0
 main: org.core.implementation.folia.platform.plugin.boot.TranslateCoreBoot
-api-version: 1.20
+api-version: '1.20'
 authors:
   - mosemister

@@ -2,7 +2,7 @@ package org.core.implementation.folia.eco.vault;
 
 import org.bukkit.OfflinePlayer;
 import org.core.eco.Currency;
-import org.core.source.eco.PlayerAccount;
+import org.core.eco.account.PlayerAccount;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;

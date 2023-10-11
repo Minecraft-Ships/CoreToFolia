@@ -48,31 +48,31 @@ task plugin {
 
 jar {
     dependsOn configurations.runtimeClasspath
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    doLast {
-        def path = project.buildDir.path + "/libs/"
-        def fileName = 'TranslateCoreFolia.jar'
-        file(path).mkdirs()
-        archiveClassifier = 'uber'
-        archiveFileName = fileName
-        destinationDirectory = file(path)
+    def path = project.buildDir.path + "/libs/"
+    def fileName = 'TranslateCoreFolia.jar'
+    file(path).mkdirs()
+    archiveClassifier = 'uber'
+    archiveFileName = fileName
+    destinationDirectory = file(path)
 
-        if (excludePluginYaml) {
-            exclude("paper-plugin.yml")
-        }
+    if (excludePluginYaml) {
+        exclude("paper-plugin.yml")
+    }
 
-        from sourceSets.main.output
-        from {
-            configurations.runtimeClasspath.findAll {
-                it.name.endsWith('jar') && !it.name.contains("junit") && !it.name.contains("hamcrest")
-            }.collect {
-                zipTree(it).matching {
-                    exclude "*.txt"
-                }
+    from sourceSets.main.output
+    from {
+        configurations.runtimeClasspath.findAll {
+            it.name.endsWith('jar') && !it.name.contains("junit") && !it.name.contains("hamcrest")
+        }.collect {
+            zipTree(it).matching {
+                exclude "*.txt"
             }
         }
-        println("Creating file in '" + path + fileName + "'")
     }
+    println("Creating file in '" + path + fileName + "'")
+
 }
 
 dependencies {

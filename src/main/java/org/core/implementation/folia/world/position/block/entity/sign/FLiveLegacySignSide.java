@@ -44,11 +44,12 @@ public class FLiveLegacySignSide implements SignSide {
 
     @Override
     public boolean isGlowing() {
-        return this.isGlowing();
+        return this.sign.isGlowingText();
     }
 
     @Override
     public void setGlowing(boolean glowing) {
-        this.setGlowing(glowing);
+        this.sign.setGlowingText(glowing);
+        this.sign.update();
     }
 }
