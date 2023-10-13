@@ -26,52 +26,13 @@ java.sourceCompatibility = JavaVersion.VERSION_17
 
 compileJava.options.encoding = 'UTF-8'
 
-def excludePluginYaml = false
-
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-task plugin {
-    doLast {
-        excludePluginYaml = true
-
-        if (excludePluginYaml) {
-            def pluginFile = file(project.buildDir.path + '/resources/main/paper-plugin.yml')
-            def ex = pluginFile.exists()
-            pluginFile.delete()
-        }
-    }
-
-    finalizedBy build
-}
-
 jar {
-    dependsOn configurations.runtimeClasspath
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    def path = project.buildDir.path + "/libs/"
-    def fileName = 'TranslateCoreFolia.jar'
-    file(path).mkdirs()
     archiveClassifier = 'uber'
-    archiveFileName = fileName
-    destinationDirectory = file(path)
-
-    if (excludePluginYaml) {
-        exclude("paper-plugin.yml")
-    }
-
-    from sourceSets.main.output
-    from {
-        configurations.runtimeClasspath.findAll {
-            it.name.endsWith('jar') && !it.name.contains("junit") && !it.name.contains("hamcrest")
-        }.collect {
-            zipTree(it).matching {
-                exclude "*.txt"
-            }
-        }
-    }
-    println("Creating file in '" + path + fileName + "'")
+    archiveFileName = "CoreToFolia"
 
 }
 
