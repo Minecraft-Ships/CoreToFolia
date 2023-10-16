@@ -1,5 +1,7 @@
 package org.core.implementation.folia.entity.living.human.player.live;
 
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -19,10 +21,11 @@ import org.core.world.position.impl.BlockPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
+public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, ForwardingAudience {
 
     @Deprecated
     public BLivePlayer(org.bukkit.entity.Entity entity) {
@@ -153,10 +156,20 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer {
     }
 
     @Override
+    public @NotNull Iterable<? extends Audience> audiences() {
+        return Collections.singleton(this.entity);
+    }
+
+    @Override
     public void sendMessage(@NotNull Component message, @Nullable UUID uuid) {
         Identity identity = uuid == null ? Identity.nil() : Identity.identity(uuid);
         Player player = this.getBukkitEntity();
         player.sendMessage(identity, message);
+    }
+
+    @Override
+    public void sendMessage(@NotNull Component message) {
+        ForwardingAudience.super.sendMessage(message);
     }
 
     @Override

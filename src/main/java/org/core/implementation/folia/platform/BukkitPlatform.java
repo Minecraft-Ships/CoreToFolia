@@ -100,7 +100,7 @@ public class BukkitPlatform implements Platform {
 
     public void init() {
         for (Material material : Material.values()) {
-            if(material.isLegacy()){
+            if (material.isLegacy()) {
                 continue;
             }
             if (material.isBlock()) {
@@ -243,10 +243,11 @@ public class BukkitPlatform implements Platform {
         return Arrays
                 .stream(Material.values())
                 .parallel()
+                .filter(material -> !material.isLegacy())
                 .filter(material -> material.getKey().toString().equals(id))
                 .findAny()
-                .orElseThrow(() -> new RuntimeException(
-                        "Unknown material with id of '" + id + "' is your plugin too " + "new?"));
+                .orElseThrow(
+                        () -> new RuntimeException("Unknown material with id of '" + id + "' is your plugin too new?"));
     }
 
     @Override

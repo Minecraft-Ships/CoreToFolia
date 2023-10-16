@@ -32,8 +32,7 @@ tasks.withType(JavaCompile) {
 
 jar {
     archiveClassifier = 'uber'
-    archiveFileName = "CoreToFolia"
-
+    archiveFileName = "CoreToFolia.jar"
 }
 
 dependencies {

@@ -1,14 +1,13 @@
 package org.core.implementation.folia.platform.plugin.boot;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.core.TranslateCore;
-import org.core.adventureText.AText;
 import org.core.command.CommandRegister;
 import org.core.command.commands.TranslateCoreCommands;
 import org.core.command.commands.timings.TimingsCommand;
@@ -22,10 +21,12 @@ import org.core.logger.Logger;
 import org.core.platform.plugin.CorePlugin;
 import org.core.platform.plugin.loader.CommonLoad;
 import org.core.schedule.Scheduler;
+import org.core.utils.Else;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,20 +37,21 @@ public class TranslateCoreBoot extends JavaPlugin {
     private final CoreToFolia core;
 
     public TranslateCoreBoot() {
-        CoreToFolia core;
-        try {
-            Class.forName("com.destroystokyo.paper.event.block.BlockDestroyEvent");
-            core = new CoreToFolia();
-        } catch (ClassNotFoundException e) {
-            core = new CoreToFolia();
-            this.getLogger().warning("Paper was not detected. ");
-            this
-                    .getLogger()
-                    .warning(
-                            "Translate Core will be dropping support for none Paper servers due to Paper's hard-fork.");
-            this.getLogger().warning("While the Paper hard-fork is not yet out, signs are showing of it coming soon.");
-        }
-        this.core = core;
+        this.core = new CoreToFolia();
+    }
+
+    private CommandMap getLegacyCommandMap(PluginManager manager) throws NoSuchFieldException, IllegalAccessException {
+        return this.getFromField(manager, "commandMap");
+    }
+
+    private CommandMap getModernCommandMap(PluginManager manager)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return (CommandMap) manager.getClass().getDeclaredMethod("getCommandMap").invoke(manager);
+    }
+
+    private CommandMap getCommandMap(PluginManager manager) throws Throwable {
+        return Else.throwMultiple(Throwable.class, () -> getModernCommandMap(manager),
+                                  () -> getLegacyCommandMap(manager));
     }
 
     @Override
@@ -63,27 +65,22 @@ public class TranslateCoreBoot extends JavaPlugin {
 
             plugin.onConstruct(this, logger);
             PluginManager pluginManager = Bukkit.getPluginManager();
-            if (pluginManager instanceof SimplePluginManager spm) {
-                try {
-                    CommandMap map = this.getFromField(spm, "commandMap");
-                    Map<String, Plugin> lookup = this.getFromField(spm, "lookupNames");
-                    lookup.put(plugin.getPluginName(), (Plugin) plugin.getPlatformLauncher());
+            try {
+                CommandMap map = this.getCommandMap(pluginManager);
+                map.register("TranslateCore",
+                             new BCommandWrapper(new BCommand(new TranslateCoreCommands(new TimingsCommand()))));
 
 
-                    map.register("TranslateCore",
-                                 new BCommandWrapper(new BCommand(new TranslateCoreCommands(new TimingsCommand()))));
-
-
-                    CommandRegister cmdReg = new CommandRegister();
-                    plugin.onRegisterCommands(cmdReg);
-                    cmdReg.getCommands().forEach(commandLauncher -> {
-                        Command command = new BCommandWrapper(new BCommand(commandLauncher));
-                        map.register(commandLauncher.getName(), command);
-                    });
-                } catch (IllegalAccessException | NoSuchFieldException e) {
-                    e.printStackTrace();
-                }
+                CommandRegister cmdReg = new CommandRegister();
+                plugin.onRegisterCommands(cmdReg);
+                cmdReg.getCommands().forEach(commandLauncher -> {
+                    Command command = new BCommandWrapper(new BCommand(commandLauncher));
+                    map.register(commandLauncher.getName(), command);
+                });
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
+
             this.plugins.add(plugin);
             return;
         }
@@ -127,41 +124,36 @@ public class TranslateCoreBoot extends JavaPlugin {
         }
         List<CorePlugin> plugins = CommonLoad.loadPlugin(this.getClassLoader(), files);
         PluginManager pluginManager = Bukkit.getPluginManager();
-        if (pluginManager instanceof SimplePluginManager spm) {
-            Set<CoreBukkitPluginWrapper> bukkitPlugins = plugins
-                    .parallelStream()
-                    .map(CoreBukkitPluginWrapper::new)
-                    .collect(Collectors.toSet());
-            try {
-                CommandMap map = this.getFromField(spm, "commandMap");
-                List<Plugin> spmPlugins = this.getFromField(spm, "plugins");
-                Map<String, Plugin> lookup = this.getFromField(spm, "lookupNames");
-                spmPlugins.addAll(bukkitPlugins);
-                lookup.putAll(spmPlugins.stream().collect(Collectors.toMap(Plugin::getName, (plugin) -> plugin)));
 
-                bukkitPlugins.forEach(plugin -> {
-                    CommandRegister cmdReg = new CommandRegister();
-                    plugin.getPlugin().onRegisterCommands(cmdReg);
-                    cmdReg.getCommands().forEach(commandLauncher -> {
-                        Command command = new BCommandWrapper(new BCommand(commandLauncher));
-                        map.register(commandLauncher.getName(), command);
-                    });
-                });
-                bukkitPlugins
-                        .parallelStream()
-                        .forEach(plugin -> plugin.getPlugin().onConstruct(plugin, new BJavaLogger(plugin.getLogger())));
-                return plugins;
-            } catch (IllegalAccessException | NoSuchFieldException e) {
-                e.printStackTrace();
-            }
+        try {
+            this.registerCommands(pluginManager, plugins);
+        } catch (Throwable e) {
+            TranslateCore.getConsole().sendMessage(Component.text("Failed to load commands. Ignoring"));
+            e.printStackTrace();
+            plugins.parallelStream().forEach(plugin -> plugin.onConstruct(TranslateCoreBoot.this));
+            return plugins;
+
         }
-
-        TranslateCore
-                .getConsole()
-                .sendMessage(AText.ofPlain(
-                        "SimplePluginManager was not used or a error occurred above. Plugins will not be treated as "
-                                + "first party -> this may break compatibility"));
-        plugins.parallelStream().forEach(plugin -> plugin.onConstruct(TranslateCoreBoot.this));
         return plugins;
+    }
+
+    private void registerCommands(PluginManager manager, Collection<CorePlugin> plugins) throws Throwable {
+        Set<CoreBukkitPluginWrapper> bukkitPlugins = plugins
+                .parallelStream()
+                .map(CoreBukkitPluginWrapper::new)
+                .collect(Collectors.toSet());
+
+        CommandMap map = this.getCommandMap(manager);
+        bukkitPlugins.forEach(plugin -> {
+            CommandRegister cmdReg = new CommandRegister();
+            plugin.getPlugin().onRegisterCommands(cmdReg);
+            cmdReg.getCommands().forEach(commandLauncher -> {
+                Command command = new BCommandWrapper(new BCommand(commandLauncher));
+                map.register(commandLauncher.getName(), command);
+            });
+        });
+        bukkitPlugins
+                .parallelStream()
+                .forEach(plugin -> plugin.getPlugin().onConstruct(plugin, new BJavaLogger(plugin.getLogger())));
     }
 }
