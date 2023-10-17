@@ -1,10 +1,9 @@
 package org.core.implementation.folia.world.position.impl.sync;
 
-import net.kyori.adventure.text.Component;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.TileState;
 import org.bukkit.entity.Player;
 import org.core.TranslateCore;
-import org.core.adventureText.AText;
-import org.core.adventureText.adventure.AdventureText;
 import org.core.entity.EntitySnapshot;
 import org.core.entity.EntityType;
 import org.core.entity.LiveEntity;
@@ -93,24 +92,31 @@ public class BBlockPosition extends BAbstractPosition<Integer> implements SyncBl
                         .getBukkitEntity()
                         .sendBlockChange(this.block.getLocation(), ((IBBlockDetails) details).getBukkitData()));
         Optional<TileEntitySnapshot<? extends TileEntity>> opTile = details.get(KeyedData.TILED_ENTITY);
-        if (opTile.isPresent()) {
-            TileEntitySnapshot<? extends TileEntity> tile = opTile.get();
-            if (tile instanceof SignTileEntitySnapshot) {
-                SignTileEntity stes = (SignTileEntity) tile;
-                List<AText> lines = stes.getText();
-                List<Component> linesList = lines
-                        .parallelStream()
-                        .map(text -> (AdventureText) text)
-                        .map(AdventureText::getComponent)
-                        .collect(Collectors.toList());
-                Stream
-                        .of(player)
-                        .forEach(lp -> ((BLiveEntity<Player>) lp)
-                                .getBukkitEntity()
-                                .sendSignChange(this.block.getLocation(), linesList));
-            }
+        if (opTile.isEmpty()) {
+            return this;
         }
+        TileEntitySnapshot<? extends TileEntity> tile = opTile.get();
+        BlockState state = this.block.getLocation().getBlock().getState(true);
+        if (!(state instanceof TileState tileState)) {
+            return this;
+        }
+        this.apply(tileState, tile, player);
         return this;
+    }
+
+    private <T extends LiveTileEntity> void apply(TileState state, TileEntitySnapshot<T> tile, LivePlayer... players) {
+        BukkitPlatform platform = (BukkitPlatform) (TranslateCore.getPlatform());
+        Optional<LiveTileEntity> opCoreState = platform.createTileEntityInstance(state);
+        if (opCoreState.isEmpty()) {
+            return;
+        }
+        LiveTileEntity coreState = opCoreState.get();
+        tile.apply((T) coreState);
+        Stream
+                .of(players)
+                .map(lp -> ((BLiveEntity<Player>) lp))
+                .map(BLiveEntity::getBukkitEntity)
+                .forEach(p -> p.sendBlockUpdate(this.block.getLocation(), state));
     }
 
     @Override

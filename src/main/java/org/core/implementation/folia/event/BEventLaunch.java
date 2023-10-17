@@ -1,17 +1,16 @@
 package org.core.implementation.folia.event;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.core.TranslateCore;
-import org.core.adventureText.AText;
-import org.core.adventureText.format.NamedTextColours;
 import org.core.event.Event;
 import org.core.event.EventListener;
 import org.core.platform.plugin.Plugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BEventLaunch {
 
@@ -45,59 +44,39 @@ public class BEventLaunch {
             this.method.invoke(this.listener, event);
             this.afterTime = System.currentTimeMillis();
         } catch (IllegalAccessException e) {
-            TranslateCore.getConsole().sendMessage(
-                    AText.ofPlain("Failed to know what to do: HEvent found on method, " +
-                                    "but method is not public on "
-                                    + this.listener.getClass().getName()
-                                    + "."
-                                    + this.method.getName()
-                                    + "("
-                                    + Arrays.stream(this.method.getParameters()).map(p -> p
-                                    .getType()
-                                    .getSimpleName()
-                                    + " "
-                                    + p.getName()).collect(Collectors.joining(", "))
-                                    + ")")
-                            .withColour(NamedTextColours.RED));
+            this.afterTime = System.currentTimeMillis();
+            String message = "Failed to know what to do:" + "HEvent found on method, but method is not public at "
+                    + this.listener.getClass().getName() + "." + this.method.getName() + "(" + Stream
+                    .of(this.method.getParameters())
+                    .map(p -> p.getType().getSimpleName() + " " + p.getName())
+                    .collect(Collectors.joining(", ")) + ")";
+
+
+            TranslateCore.getConsole().sendMessage(Component.text(message).color(TextColor.color(255, 0, 0)));
             e.printStackTrace();
         } catch (InvocationTargetException e) {
-            TranslateCore
-                    .getConsole()
-                    .sendMessage(AText
-                            .ofPlain(
-                                    "Failed to know what to do: EventListener caused exception from "
-                                            + this.listener.getClass().getName()
-                                            + "."
-                                            + this.method.getName()
-                                            + "("
-                                            + Arrays
-                                            .stream(this.method.getParameters())
-                                            .map(p -> p.getType().getSimpleName())
-                                            .collect(Collectors.joining(", "))
-                                            + ")")
-                            .withColour(NamedTextColours.RED));
+            this.afterTime = System.currentTimeMillis();
+            String message = "Failed to know what to do:" + "EventListener caused exception from " + this.listener
+                    .getClass()
+                    .getName() + "." + this.method.getName() + "(" + Stream
+                    .of(this.method.getParameters())
+                    .map(p -> p.getType().getSimpleName() + " " + p.getName())
+                    .collect(Collectors.joining(", ")) + ")";
+
+
+            TranslateCore.getConsole().sendMessage(Component.text(message).color(TextColor.color(255, 0, 0)));
             e.getTargetException().printStackTrace();
         } catch (Throwable e) {
             this.afterTime = System.currentTimeMillis();
-            TranslateCore
-                    .getConsole()
-                    .sendMessage(AText
-                            .ofPlain(
-                                    "Failed to know what to do: HEvent found on method, but exception found when " +
-                                            "running "
-                                            + this.listener.getClass().getName()
-                                            + "."
-                                            + this.method.getName()
-                                            + "("
-                                            + Arrays
-                                            .stream(this.method.getParameters())
-                                            .map(p -> p.getType().getSimpleName() + " " + p.getName())
-                                            .collect(Collectors.joining(", "))
-                                            + ") found in plugin: "
-                                            + this.plugin.getPluginName()
-                                            + " - Time taken for event to process: "
-                                            + TimeUnit.MILLISECONDS.toMicros(this.getTimeTaken()))
-                            .withColour(NamedTextColours.RED));
+            String message = "Failed to know what to do:" + "EventListener caused exception from " + this.listener
+                    .getClass()
+                    .getName() + "." + this.method.getName() + "(" + Stream
+                    .of(this.method.getParameters())
+                    .map(p -> p.getType().getSimpleName() + " " + p.getName())
+                    .collect(Collectors.joining(", ")) + ")";
+
+
+            TranslateCore.getConsole().sendMessage(Component.text(message).color(TextColor.color(255, 0, 0)));
             e.printStackTrace();
         }
     }

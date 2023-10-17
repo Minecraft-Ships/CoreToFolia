@@ -1,6 +1,6 @@
 package org.core.implementation.folia.entity;
 
-import org.core.adventureText.AText;
+import net.kyori.adventure.text.Component;
 import org.core.entity.EntitySnapshot;
 import org.core.entity.LiveEntity;
 import org.core.vector.type.Vector3;
@@ -24,7 +24,7 @@ public abstract class BEntitySnapshot<T extends LiveEntity> implements EntitySna
     protected boolean hasGravity;
     protected boolean isOnGround;
     protected Vector3<Double> velocity;
-    protected AText customName;
+    protected Component customName;
     protected boolean isCustomNameVisible;
     protected T createdFrom;
 
@@ -34,7 +34,7 @@ public abstract class BEntitySnapshot<T extends LiveEntity> implements EntitySna
 
     public BEntitySnapshot(T entity) {
         this.hasGravity = entity.hasGravity();
-        this.customName = entity.getCustomName().orElse(null);
+        this.customName = entity.getCustomNameComponent().orElse(null);
         this.velocity = entity.getVelocity();
         this.yaw = entity.getYaw();
         this.pitch = entity.getPitch();
@@ -47,7 +47,7 @@ public abstract class BEntitySnapshot<T extends LiveEntity> implements EntitySna
 
     public BEntitySnapshot(EntitySnapshot<T> entity) {
         this.hasGravity = entity.hasGravity();
-        this.customName = entity.getCustomName().orElse(null);
+        this.customName = entity.getCustomNameComponent().orElse(null);
         this.velocity = entity.getVelocity();
         this.yaw = entity.getYaw();
         this.pitch = entity.getPitch();
@@ -169,13 +169,13 @@ public abstract class BEntitySnapshot<T extends LiveEntity> implements EntitySna
     }
 
     @Override
-    public EntitySnapshot<T> setCustomName(@Nullable AText text) {
+    public EntitySnapshot<T> setCustomName(@Nullable Component text) {
         this.customName = text;
         return this;
     }
 
     @Override
-    public Optional<AText> getCustomName() {
+    public Optional<Component> getCustomNameComponent() {
         return Optional.ofNullable(this.customName);
     }
 

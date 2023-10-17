@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -139,19 +140,16 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, Forw
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public LivePlayer sendMessage(AText message, UUID uuid) {
         this.getBukkitEntity().sendMessage(uuid, message.toLegacy());
         return this;
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public LivePlayer sendMessage(AText message) {
-        Player player = this.getBukkitEntity();
-        if (message instanceof AdventureText text) {
-            this.sendMessage(text.getComponent());
-            return this;
-        }
-        player.sendMessage(message.toLegacy());
+        this.sendMessage((ComponentLike)message);
         return this;
     }
 

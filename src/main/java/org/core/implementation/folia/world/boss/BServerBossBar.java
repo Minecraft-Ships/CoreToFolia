@@ -1,5 +1,7 @@
 package org.core.implementation.folia.world.boss;
 
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -18,55 +20,26 @@ import java.util.Set;
 
 public class BServerBossBar implements ServerBossBar {
 
-    final org.bukkit.boss.BossBar bossBar;
+    final BossBar bossBar;
 
     public BServerBossBar() {
-        this(Bukkit.createBossBar("<Unset Message>", BarColor.PURPLE, BarStyle.SOLID));
+        this(BossBar.bossBar(Component.empty(), 0, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS));
     }
 
-    public BServerBossBar(org.bukkit.boss.BossBar boss) {
+    public BServerBossBar(BossBar boss) {
         this.bossBar = boss;
     }
 
     @Override
-    public AText getTitle() {
-        return AText.ofLegacy(this.bossBar.getTitle());
-    }
-
-    @Override
-    public ServerBossBar setTitle(AText text) {
-        this.bossBar.setTitle(text.toLegacy());
-        return this;
-    }
-
-    @Override
-    public BossColour getColour() {
-        return new BBossColour(this.bossBar.getColor());
-    }
-
-    @Override
-    public ServerBossBar setColour(BossColour colour) {
-        this.bossBar.setColor(((BBossColour) colour).getBukkitColor());
-        return this;
-    }
-
-    @Override
-    public int getValue() {
-        return (int) (this.bossBar.getProgress() * 100);
-    }
-
-    @Override
-    public ServerBossBar setValue(int value) {
-        if (value > 100) {
-            throw new IllegalArgumentException("ServerBossBar.SetValue must be between 0 and 100 (" + value + ")");
-        }
-        double percent = (value / 100.0);
-        this.bossBar.setProgress(percent);
-        return this;
+    public BossBar bossBar() {
+        return this.bossBar;
     }
 
     @Override
     public Set<LivePlayer> getPlayers() {
+        Bukkit.getOnlinePlayers().stream().filter(player -> player.activeBossBars())
+
+
         List<org.bukkit.entity.Player> players = this.bossBar.getPlayers();
         Set<LivePlayer> set = new HashSet<>();
         players.forEach(p -> set.add(new BLivePlayer(p)));
@@ -76,7 +49,7 @@ public class BServerBossBar implements ServerBossBar {
     @Override
     public ServerBossBar register(LivePlayer... players) {
         for (LivePlayer player : players) {
-            this.bossBar.addPlayer(((BLiveEntity<Player>) player).getBukkitEntity());
+            this.bossBar.addViewer(((BLiveEntity<Player>) player).getBukkitEntity());
         }
         return this;
     }
@@ -84,7 +57,7 @@ public class BServerBossBar implements ServerBossBar {
     @Override
     public ServerBossBar deregister(LivePlayer... players) {
         for (LivePlayer player : players) {
-            this.bossBar.removePlayer(((BLiveEntity<Player>) player).getBukkitEntity());
+            this.bossBar.removeViewer(((BLiveEntity<Player>) player).getBukkitEntity());
         }
         return this;
     }

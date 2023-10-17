@@ -1,12 +1,12 @@
 package org.core.implementation.folia.platform;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.core.TranslateCore;
-import org.core.adventureText.AText;
-import org.core.adventureText.format.NamedTextColours;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.User;
 import org.core.exceptions.BlockNotSupported;
@@ -92,11 +92,11 @@ public class BServer implements PlatformServer {
                         } catch (IllegalStateException e) {
                             TranslateCore
                                     .getConsole()
-                                    .sendMessage(AText
-                                                         .ofPlain("Failed to set block type of " + blockSnapshot
+                                    .sendMessage(Component
+                                                         .text("Failed to set block type of " + blockSnapshot
                                                                  .getType()
                                                                  .getId())
-                                                         .withColour(NamedTextColours.RED));
+                                                         .color(NamedTextColor.RED));
                             throw e;
                         }
                     }

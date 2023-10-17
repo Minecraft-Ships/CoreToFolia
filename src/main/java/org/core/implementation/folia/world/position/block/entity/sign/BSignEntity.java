@@ -51,11 +51,13 @@ public class BSignEntity extends AbstractLiveTileEntity implements LiveSignTileE
     }
 
     @Override
+    @Deprecated
     public List<AText> getText() {
         return this.getBukkitSign().lines().stream().map(AdventureText::new).collect(Collectors.toList());
     }
 
     @Override
+    @Deprecated
     public SignTileEntity setText(Collection<? extends AText> text) {
         int i = 0;
         Sign sign = this.getBukkitSign();

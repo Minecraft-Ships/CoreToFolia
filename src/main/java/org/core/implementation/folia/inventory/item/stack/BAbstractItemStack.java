@@ -3,14 +3,13 @@ package org.core.implementation.folia.inventory.item.stack;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.core.adventureText.AText;
-import org.core.adventureText.adventure.AdventureText;
 import org.core.implementation.folia.inventory.item.BItemType;
 import org.core.inventory.item.ItemType;
 import org.core.inventory.item.stack.ItemStack;
 import org.core.inventory.item.stack.ItemStackSnapshot;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +38,7 @@ public abstract class BAbstractItemStack implements ItemStack {
     }
 
     @Override
-    public List<AText> getLoreText() {
+    public List<Component> getLore() {
         ItemMeta meta = this.stack.getItemMeta();
         if (meta == null) {
             return Collections.emptyList();
@@ -48,11 +47,11 @@ public abstract class BAbstractItemStack implements ItemStack {
         if (lore == null) {
             return Collections.emptyList();
         }
-        return lore.stream().map(AdventureText::new).collect(Collectors.toList());
+        return lore;
     }
 
     @Override
-    public org.core.inventory.item.stack.ItemStack setLoreText(Collection<? extends AText> lore) {
+    public org.core.inventory.item.stack.ItemStack setLore(Collection<? extends Component> lore) {
         ItemMeta meta = this.stack.getItemMeta();
         if (meta == null) {
             meta = Bukkit.getItemFactory().getItemMeta(this.stack.getType());
@@ -60,11 +59,7 @@ public abstract class BAbstractItemStack implements ItemStack {
                 throw new IllegalStateException("Could not create ItemMeta for " + this.stack.getType().name());
             }
         }
-        meta.lore(lore
-                          .stream()
-                          .map(text -> (AdventureText) text)
-                          .map(AdventureText::getComponent)
-                          .collect(Collectors.toList()));
+        meta.lore(new ArrayList<>(lore));
         this.stack.setItemMeta(meta);
         return this;
     }

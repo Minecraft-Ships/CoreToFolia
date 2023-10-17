@@ -1,6 +1,7 @@
 package org.core.implementation.folia.event;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,9 +18,6 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.core.TranslateCore;
-import org.core.adventureText.AText;
-import org.core.adventureText.adventure.AdventureText;
-import org.core.adventureText.format.NamedTextColours;
 import org.core.entity.Entity;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.event.Event;
@@ -138,10 +136,9 @@ public class BukkitListener implements Listener {
     public static void onPlayerKickedEvent(PlayerKickEvent event) {
         LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
-        AText message = new AdventureText(event.leaveMessage());
-        BKickEvent kickEvent = new BKickEvent(player, message);
+        BKickEvent kickEvent = new BKickEvent(player, event.leaveMessage());
         call(EventPriority.HIGHEST, kickEvent);
-        event.leaveMessage(((AdventureText) kickEvent.getLeavingMessage()).getComponent());
+        event.leaveMessage(kickEvent.getLeaveMessage());
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST)
@@ -149,38 +146,20 @@ public class BukkitListener implements Listener {
         LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
         Component originalMessage = event.quitMessage();
-
-        AText message = null;
-        if (originalMessage != null) {
-            message = new AdventureText(originalMessage);
-        }
-        BKickEvent kickEvent = new BKickEvent(player, message);
+        BKickEvent kickEvent = new BKickEvent(player, originalMessage);
         call(EventPriority.HIGHEST, kickEvent);
-        AText text = kickEvent.getLeavingMessage();
-        if (text instanceof AdventureText) {
-            try {
-                Object component = text.getClass().getMethod("getComponent").invoke(text);
-                event.getClass().getMethod("quitMessage", component.getClass()).invoke(event, component);
-                return;
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
-            }
-        }
-        AdventureText leavingMessage = (AdventureText) kickEvent.getLeavingMessage();
-        if (leavingMessage != null) {
-            event.quitMessage(leavingMessage.getComponent());
-        }
+        Component text = kickEvent.getLeaveMessage();
+        event.quitMessage(text);
     }
 
     @EventHandler
     public static void onSignChangeEvent(SignChangeEvent event) {
-        Sign sign = (Sign)event.getBlock().getState();
+        Sign sign = (Sign) event.getBlock().getState();
         LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
         SyncBlockPosition position = new BBlockPosition(event.getBlock());
 
         BSignEntitySnapshot snapshot = new BSignEntitySnapshot();
-
-
 
         boolean front = true;
         BSignChangeEvent coreEvent;
@@ -190,8 +169,11 @@ public class BukkitListener implements Listener {
             front = (side == frontSide);
 
             Object signSide = sign.getClass().getDeclaredMethod("getSide", side.getClass()).invoke(sign, side);
-            Collection<Component> previousLines = (List<Component>)signSide.getClass().getDeclaredMethod("lines").invoke(signSide);
-            boolean previousGlowing = (boolean)signSide.getClass().getDeclaredMethod("isGlowingText").invoke(signSide);
+            Collection<Component> previousLines = (List<Component>) signSide
+                    .getClass()
+                    .getDeclaredMethod("lines")
+                    .invoke(signSide);
+            boolean previousGlowing = (boolean) signSide.getClass().getDeclaredMethod("isGlowingText").invoke(signSide);
             FSignSideSnapshot previousSideSnapshot = (FSignSideSnapshot) snapshot.getSide(front);
             previousSideSnapshot.setGlowing(previousGlowing);
             previousSideSnapshot.setLines(previousLines);
@@ -200,9 +182,12 @@ public class BukkitListener implements Listener {
             newSideSnapshot.setGlowing(previousGlowing);
 
             coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException ignore) {
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException |
+                 NoSuchFieldException ignore) {
             List<Component> previousLines = sign.lines();
-            boolean glowing = Else.throwOr(Throwable.class, () -> (boolean)sign.getClass().getMethod("isGlowingText").invoke(sign), false);
+            boolean glowing = Else.throwOr(Throwable.class,
+                                           () -> (boolean) sign.getClass().getMethod("isGlowingText").invoke(sign),
+                                           false);
 
             FSignSideSnapshot previousSideSnapshot = new FSignSideSnapshot(snapshot, true, previousLines);
             previousSideSnapshot.setGlowing(glowing);
@@ -310,13 +295,10 @@ public class BukkitListener implements Listener {
                 }
                 Parameter[] parameters = method.getParameters();
                 if (parameters.length == 0) {
-                    TranslateCore
-                            .getConsole()
-                            .sendMessage(AText
-                                                 .ofPlain("Failed to know what to do: HEvent found on method, "
-                                                                  + "but no event on " + el.getClass().getName() + "."
-                                                                  + method.getName() + "()")
-                                                 .withColour(NamedTextColours.RED));
+                    String message = "Failed to know what to do:" + " HEvent found on method, but no event on " + el
+                            .getClass()
+                            .getName() + "." + method.getName() + "()";
+                    TranslateCore.getConsole().sendMessage(Component.text(message).color(NamedTextColor.RED));
                     continue;
                 }
                 if (!Modifier.isPublic(method.getModifiers())) {

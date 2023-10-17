@@ -1,6 +1,5 @@
 package org.core.implementation.folia.logger;
 
-import org.core.adventureText.AText;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
@@ -16,11 +15,6 @@ public class BJavaLogger implements org.core.logger.Logger {
     @Override
     public void log(@NotNull String log) {
         this.logger.info(log);
-    }
-
-    @Override
-    public void log(@NotNull AText log) {
-        this.logger.info(log.toLegacy());
     }
 
     @Override

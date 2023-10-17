@@ -2,8 +2,6 @@ package org.core.implementation.folia.entity;
 
 import net.kyori.adventure.text.Component;
 import org.core.TranslateCore;
-import org.core.adventureText.AText;
-import org.core.adventureText.adventure.AdventureText;
 import org.core.entity.Entity;
 import org.core.entity.LiveEntity;
 import org.core.implementation.folia.platform.BukkitPlatform;
@@ -109,13 +107,12 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
     @Override
     public SyncExactPosition getPosition() {
         return new BExactPosition(this.entity.getLocation().getX(), this.entity.getLocation().getY(),
-                this.entity.getLocation().getZ(), this.entity.getWorld());
+                                  this.entity.getLocation().getZ(), this.entity.getWorld());
     }
 
     @Override
     public BLiveEntity<T> setPosition(Position<? extends Number> position) {
-        BExactPosition position1 = position instanceof BExactPosition ? (BExactPosition) position :
-                (BExactPosition) ((BlockPosition) position).toExactPosition();
+        BExactPosition position1 = position instanceof BExactPosition ? (BExactPosition) position : (BExactPosition) ((BlockPosition) position).toExactPosition();
         this.entity.teleport(position1.toBukkitLocation());
         return this;
     }
@@ -133,21 +130,14 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
     }
 
     @Override
-    public Optional<AText> getCustomName() {
+    public Optional<Component> getCustomNameComponent() {
         Component customName = this.entity.customName();
-        if (customName == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new AdventureText(customName));
+        return Optional.ofNullable(customName);
     }
 
     @Override
-    public Entity<LiveEntity> setCustomName(@Nullable AText text) {
-        if (text == null) {
-            this.entity.customName(null);
-            return this;
-        }
-        this.entity.customName(((AdventureText)text).getComponent());
+    public Entity<LiveEntity> setCustomName(@Nullable Component text) {
+        this.entity.customName(text);
         return this;
     }
 

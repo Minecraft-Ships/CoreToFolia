@@ -1,7 +1,6 @@
 package org.core.implementation.folia.event.events.connection;
 
 import net.kyori.adventure.text.Component;
-import org.core.adventureText.AText;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.event.events.connection.ClientConnectionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -14,12 +13,6 @@ public class AbstractLeaveEvent implements ClientConnectionEvent.Leave {
     public AbstractLeaveEvent(LivePlayer player, Component component) {
         this.leaveMessage = component;
         this.player = player;
-    }
-
-    @Deprecated(forRemoval = true)
-    public AbstractLeaveEvent(LivePlayer player, AText leaveMessage) {
-        this.player = player;
-        this.setLeavingMessage(leaveMessage);
     }
 
     @Override

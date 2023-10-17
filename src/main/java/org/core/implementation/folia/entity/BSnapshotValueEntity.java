@@ -1,9 +1,9 @@
 package org.core.implementation.folia.entity;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.core.TranslateCore;
-import org.core.adventureText.AText;
 import org.core.entity.Entity;
 import org.core.entity.EntitySnapshot;
 import org.core.entity.EntityType;
@@ -11,6 +11,7 @@ import org.core.entity.LiveEntity;
 import org.core.implementation.folia.platform.BukkitPlatform;
 import org.core.implementation.folia.world.BWorldExtent;
 import org.core.implementation.folia.world.position.impl.sync.BExactPosition;
+import org.core.utils.ComponentUtils;
 import org.core.utils.Else;
 import org.core.utils.entry.AbstractSnapshotValue;
 import org.core.vector.type.Vector3;
@@ -143,18 +144,18 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
     }
 
     @Override
-    public Optional<AText> getCustomName() {
+    public Optional<Component> getCustomNameComponent() {
         Optional<EntitySnapshotValue<?, String>> opText = this.getSnapshotValue("CUSTOM_NAME");
-        return opText.map(stringEntitySnapshotValue -> AText.ofLegacy(stringEntitySnapshotValue.getValue()));
+        return opText.map(stringEntitySnapshotValue -> ComponentUtils.fromGson(stringEntitySnapshotValue.getValue()));
     }
 
     @Override
-    public Entity<EntitySnapshot<? extends LiveEntity>> setCustomName(@Nullable AText text) {
+    public Entity<EntitySnapshot<? extends LiveEntity>> setCustomName(@Nullable Component text) {
         if (text == null) {
             this.<String>getSnapshotValue("CUSTOM_NAME").get().setValue(null);
             return this;
         }
-        this.<String>getSnapshotValue("CUSTOM_NAME").get().setValue(text.toLegacy());
+        this.<String>getSnapshotValue("CUSTOM_NAME").get().setValue(ComponentUtils.toGson(text));
         return this;
     }
 
