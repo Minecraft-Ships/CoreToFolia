@@ -3,20 +3,16 @@ package org.core.implementation.folia.world.boss;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
-import org.core.adventureText.AText;
+import org.core.TranslateCore;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.implementation.folia.entity.BLiveEntity;
-import org.core.implementation.folia.entity.living.human.player.live.BLivePlayer;
-import org.core.implementation.folia.world.boss.colour.BBossColour;
+import org.core.implementation.folia.platform.BukkitPlatform;
 import org.core.world.boss.ServerBossBar;
-import org.core.world.boss.colour.BossColour;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class BServerBossBar implements ServerBossBar {
 
@@ -37,13 +33,14 @@ public class BServerBossBar implements ServerBossBar {
 
     @Override
     public Set<LivePlayer> getPlayers() {
-        Bukkit.getOnlinePlayers().stream().filter(player -> player.activeBossBars())
-
-
-        List<org.bukkit.entity.Player> players = this.bossBar.getPlayers();
-        Set<LivePlayer> set = new HashSet<>();
-        players.forEach(p -> set.add(new BLivePlayer(p)));
-        return set;
+        return Bukkit
+                .getOnlinePlayers()
+                .stream()
+                .filter(player -> StreamSupport
+                        .stream(player.activeBossBars().spliterator(), false)
+                        .anyMatch(bossBar -> bossBar.equals(this.bossBar())))
+                .map(player -> (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(player))
+                .collect(Collectors.toSet());
     }
 
     @Override
