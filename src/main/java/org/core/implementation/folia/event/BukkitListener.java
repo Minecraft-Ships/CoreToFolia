@@ -19,20 +19,21 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.core.TranslateCore;
 import org.core.entity.Entity;
+import org.core.entity.LiveEntity;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.event.Event;
 import org.core.event.EventPriority;
 import org.core.event.HEvent;
+import org.core.event.events.entity.EntityDeathEvent;
 import org.core.event.events.entity.EntityInteractEvent;
+import org.core.event.events.entity.EntityMoveEvent;
 import org.core.implementation.folia.entity.scene.live.BLiveDroppedItem;
 import org.core.implementation.folia.event.events.block.AbstractBlockChangeEvent;
 import org.core.implementation.folia.event.events.block.AbstractExplosionEvent;
 import org.core.implementation.folia.event.events.block.tileentity.BSignChangeEvent;
 import org.core.implementation.folia.event.events.connection.BJoinedEvent;
 import org.core.implementation.folia.event.events.connection.BKickEvent;
-import org.core.implementation.folia.event.events.entity.BEntityCommandEvent;
-import org.core.implementation.folia.event.events.entity.BEntityInteractEvent;
-import org.core.implementation.folia.event.events.entity.BEntitySpawnEvent;
+import org.core.implementation.folia.event.events.entity.*;
 import org.core.implementation.folia.platform.BukkitPlatform;
 import org.core.implementation.folia.utils.DirectionUtils;
 import org.core.implementation.folia.world.expload.EntityExplosion;
@@ -47,6 +48,7 @@ import org.core.utils.Else;
 import org.core.world.position.block.details.BlockDetails;
 import org.core.world.position.block.details.BlockSnapshot;
 import org.core.world.position.impl.sync.SyncBlockPosition;
+import org.core.world.position.impl.sync.SyncExactPosition;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,6 +58,41 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class BukkitListener implements Listener {
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        SyncExactPosition before = new BExactPosition(event.getFrom());
+        SyncExactPosition after = new BExactPosition(event.getTo());
+        LivePlayer entity = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
+                event.getPlayer());
+
+        EntityMoveEvent.AsPlayer coreEvent = new FEntityMoveEvent.FPlayerMoveEvent(before, after, entity,
+                                                                                   EntityMoveEvent.AsPlayer.MoveReason.NATURAL);
+        BukkitListener.call(EventPriority.IGNORE, coreEvent);
+        event.setCancelled(coreEvent.isCancelled());
+    }
+
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        SyncExactPosition before = new BExactPosition(event.getFrom());
+        SyncExactPosition after = new BExactPosition(event.getTo());
+        LivePlayer entity = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
+                event.getPlayer());
+
+        EntityMoveEvent.AsPlayer coreEvent = new FEntityMoveEvent.FPlayerMoveEvent(before, after, entity,
+                                                                                   EntityMoveEvent.AsPlayer.MoveReason.TELEPORT);
+        BukkitListener.call(EventPriority.IGNORE, coreEvent);
+        event.setCancelled(coreEvent.isCancelled());
+    }
+
+    @EventHandler
+    public void onEntityDeath(org.bukkit.event.entity.EntityDeathEvent event) {
+        LiveEntity entity = ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getEntity());
+
+        EntityDeathEvent<?> coreEvent = new FEntityDeathEvent<>(entity);
+        BukkitListener.call(EventPriority.IGNORE, coreEvent);
+        event.setCancelled(coreEvent.isCancelled());
+    }
 
     @EventHandler
     public void onCommandSend(PlayerCommandSendEvent event) {
