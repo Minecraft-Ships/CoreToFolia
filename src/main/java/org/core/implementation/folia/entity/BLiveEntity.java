@@ -1,13 +1,14 @@
 package org.core.implementation.folia.entity;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.Location;
+import org.bukkit.util.Vector;
 import org.core.TranslateCore;
 import org.core.entity.Entity;
 import org.core.entity.LiveEntity;
 import org.core.implementation.folia.platform.BukkitPlatform;
 import org.core.implementation.folia.world.position.impl.sync.BExactPosition;
 import org.core.vector.type.Vector3;
-import org.core.world.position.impl.BlockPosition;
 import org.core.world.position.impl.Position;
 import org.core.world.position.impl.sync.SyncExactPosition;
 import org.jetbrains.annotations.Nullable;
@@ -21,33 +22,33 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
 
     protected final T entity;
 
-    public BLiveEntity(T entity) {
+    protected BLiveEntity(T entity) {
         this.entity = entity;
     }
 
-    public T getBukkitEntity() {
-        return this.entity;
-    }
-
     @Override
-    public boolean isRemoved() {
-        return this.entity.isDead();
-    }
-
-    @Override
-    public BLiveEntity<T> setGravity(boolean check) {
-        this.entity.setGravity(check);
+    public LiveEntity addPassengers(Collection<? extends LiveEntity> entities) {
         return this;
     }
 
     @Override
-    public boolean hasGravity() {
-        return this.entity.hasGravity();
+    public Entity<LiveEntity> setCustomName(@Nullable Component text) {
+        this.entity.customName(text);
+        return this;
     }
 
     @Override
-    public boolean isOnGround() {
-        return this.entity.isOnGround();
+    public Optional<Component> getCustomNameComponent() {
+        Component customName = this.entity.customName();
+        return Optional.ofNullable(customName);
+    }
+
+    @Override
+    public Collection<LiveEntity> getPassengers() {
+        BukkitPlatform bukkitPlatform = (BukkitPlatform) TranslateCore.getPlatform();
+        Set<LiveEntity> set = new HashSet<>();
+        this.entity.getPassengers().forEach(e -> set.add(bukkitPlatform.createEntityInstance(e)));
+        return set;
     }
 
     @Override
@@ -57,23 +58,16 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
 
     @Override
     public BLiveEntity<T> setPitch(double value) {
-        org.bukkit.Location loc = this.entity.getLocation();
+        Location loc = this.entity.getLocation();
         loc.setPitch((float) value);
         this.entity.teleport(loc);
         return this;
     }
 
     @Override
-    public double getYaw() {
-        return this.entity.getLocation().getYaw();
-    }
-
-    @Override
-    public BLiveEntity<T> setYaw(double value) {
-        org.bukkit.Location loc = this.entity.getLocation();
-        loc.setYaw((float) value);
-        this.entity.teleport(loc);
-        return this;
+    public SyncExactPosition getPosition() {
+        return new BExactPosition(this.entity.getLocation().getX(), this.entity.getLocation().getY(),
+                                  this.entity.getLocation().getZ(), this.entity.getWorld());
     }
 
     @Override
@@ -87,58 +81,38 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
     }
 
     @Override
-    public Collection<LiveEntity> getPassengers() {
-        BukkitPlatform bukkitPlatform = (BukkitPlatform) TranslateCore.getPlatform();
-        Set<LiveEntity> set = new HashSet<>();
-        this.entity.getPassengers().forEach(e -> set.add(bukkitPlatform.createEntityInstance(e)));
-        return set;
-    }
-
-    @Override
-    public LiveEntity addPassengers(Collection<? extends LiveEntity> entities) {
-        return this;
-    }
-
-    @Override
-    public LiveEntity removePassengers(Collection<LiveEntity> entities) {
-        return this;
-    }
-
-    @Override
-    public SyncExactPosition getPosition() {
-        return new BExactPosition(this.entity.getLocation().getX(), this.entity.getLocation().getY(),
-                                  this.entity.getLocation().getZ(), this.entity.getWorld());
-    }
-
-    @Override
-    public BLiveEntity<T> setPosition(Position<? extends Number> position) {
-        BExactPosition position1 = position instanceof BExactPosition ? (BExactPosition) position : (BExactPosition) ((BlockPosition) position).toExactPosition();
-        this.entity.teleport(position1.toBukkitLocation());
-        return this;
-    }
-
-    @Override
-    public LiveEntity setVelocity(Vector3<Double> velocity) {
-        this.entity.setVelocity(new org.bukkit.util.Vector(velocity.getX(), velocity.getY(), velocity.getZ()));
-        return this;
-    }
-
-    @Override
     public Vector3<Double> getVelocity() {
-        org.bukkit.util.Vector vector = this.entity.getVelocity();
+        Vector vector = this.entity.getVelocity();
         return Vector3.valueOf(vector.getX(), vector.getY(), vector.getZ());
     }
 
     @Override
-    public Optional<Component> getCustomNameComponent() {
-        Component customName = this.entity.customName();
-        return Optional.ofNullable(customName);
+    public LiveEntity setVelocity(Vector3<Double> velocity) {
+        this.entity.setVelocity(new Vector(velocity.getX(), velocity.getY(), velocity.getZ()));
+        return this;
     }
 
     @Override
-    public Entity<LiveEntity> setCustomName(@Nullable Component text) {
-        this.entity.customName(text);
+    public double getYaw() {
+        return this.entity.getLocation().getYaw();
+    }
+
+    @Override
+    public BLiveEntity<T> setYaw(double value) {
+        Location loc = this.entity.getLocation();
+        loc.setYaw((float) value);
+        this.entity.teleport(loc);
         return this;
+    }
+
+    @Override
+    public boolean hasGravity() {
+        return this.entity.hasGravity();
+    }
+
+    @Override
+    public boolean isCustomNameVisible() {
+        return this.entity.isCustomNameVisible();
     }
 
     @Override
@@ -148,8 +122,35 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
     }
 
     @Override
-    public boolean isCustomNameVisible() {
-        return this.entity.isCustomNameVisible();
+    public boolean isOnGround() {
+        return this.entity.isOnGround();
+    }
+
+    @Override
+    public boolean isRemoved() {
+        return this.entity.isDead();
+    }
+
+    @Override
+    public LiveEntity removePassengers(Collection<LiveEntity> entities) {
+        return this;
+    }
+
+    @Override
+    public BLiveEntity<T> setGravity(boolean check) {
+        this.entity.setGravity(check);
+        return this;
+    }
+
+    @Override
+    public boolean setPosition(Position<? extends Number> position) {
+        BExactPosition position1 = (position instanceof BExactPosition) ? (BExactPosition) position :
+                (BExactPosition) position.toExactPosition();
+        return this.entity.teleport(position1.toBukkitLocation());
+    }
+
+    public T getBukkitEntity() {
+        return this.entity;
     }
 
     @Override

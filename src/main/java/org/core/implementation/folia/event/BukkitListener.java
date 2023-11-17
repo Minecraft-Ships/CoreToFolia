@@ -60,9 +60,30 @@ import java.util.stream.Collectors;
 public class BukkitListener implements Listener {
 
     @EventHandler
+    public void onCommandSend(PlayerCommandSendEvent event) {
+        LivePlayer lPlayer = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
+                event.getPlayer());
+        BEntityCommandEvent event1 = new BEntityCommandEvent(lPlayer, event.getCommands());
+        call(EventPriority.NORMAL, event1);
+    }
+
+    @EventHandler
+    public void onEntityDeath(org.bukkit.event.entity.EntityDeathEvent event) {
+        LiveEntity entity = ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getEntity());
+
+        EntityDeathEvent<?> coreEvent = new FEntityDeathEvent<>(entity);
+        BukkitListener.call(EventPriority.IGNORE, coreEvent);
+        event.setCancelled(coreEvent.isCancelled());
+    }
+
+    @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         SyncExactPosition before = new BExactPosition(event.getFrom());
         SyncExactPosition after = new BExactPosition(event.getTo());
+        if(before.equals(after)){
+            return;
+        }
+
         LivePlayer entity = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
 
@@ -85,21 +106,146 @@ public class BukkitListener implements Listener {
         event.setCancelled(coreEvent.isCancelled());
     }
 
-    @EventHandler
-    public void onEntityDeath(org.bukkit.event.entity.EntityDeathEvent event) {
-        LiveEntity entity = ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getEntity());
+    public static <E extends Event> E call(EventPriority priority, E event) {
+        Set<BEventLaunch> methods = getMethods(priority, event.getClass());
+        methods.forEach(m -> m.run(event));
+        return event;
+    }
 
-        EntityDeathEvent<?> coreEvent = new FEntityDeathEvent<>(entity);
-        BukkitListener.call(EventPriority.IGNORE, coreEvent);
-        event.setCancelled(coreEvent.isCancelled());
+    private static Set<BEventLaunch> getMethods(EventPriority priority, Class<? extends Event> classEvent) {
+        Set<BEventLaunch> methods = new HashSet<>();
+        TranslateCore.getEventManager().getEventListeners().forEach((key, value) -> value.forEach(el -> {
+            for (Method method : el.getClass().getDeclaredMethods()) {
+                HEvent hEvent = method.getAnnotation(HEvent.class);
+                if (hEvent == null) {
+                    continue;
+                }
+                if ((priority != EventPriority.IGNORE) && hEvent.priority() != priority
+                        && hEvent.priority() != EventPriority.IGNORE) {
+                    continue;
+                }
+                if (methods.stream().anyMatch(m -> method.getName().contains("$"))) {
+                    continue;
+                }
+                Parameter[] parameters = method.getParameters();
+                if (parameters.length == 0) {
+                    String message = "Failed to know what to do:" + " HEvent found on method, but no event on " + el
+                            .getClass()
+                            .getName() + "." + method.getName() + "()";
+                    TranslateCore.getConsole().sendMessage(Component.text(message).color(NamedTextColor.RED));
+                    continue;
+                }
+                if (!Modifier.isPublic(method.getModifiers())) {
+                    continue;
+                }
+                Class<?> class1 = parameters[0].getType();
+                if (!Event.class.isAssignableFrom(classEvent)) {
+                    String parameterNames = Arrays
+                            .stream(parameters)
+                            .map(p -> p.getType().getSimpleName() + " " + p.getName())
+                            .collect(Collectors.joining(", "));
+                    System.err.println("Failed to know what to do: HEvent found on method, but no known event on " + el
+                            .getClass()
+                            .getName() + "." + method.getName() + "(" + parameterNames + ")");
+                }
+                if (class1.isAssignableFrom(classEvent)) {
+                    methods.add(new BEventLaunch(key, el, method));
+                }
+            }
+        }));
+        return methods;
     }
 
     @EventHandler
-    public void onCommandSend(PlayerCommandSendEvent event) {
-        LivePlayer lPlayer = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
-                event.getPlayer());
-        BEntityCommandEvent event1 = new BEntityCommandEvent(lPlayer, event.getCommands());
+    public static void onBlockBreakByPlayer(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        Material material = player.getInventory().getItemInMainHand().getType();
+        if (player.getGameMode() == GameMode.CREATIVE && (material == Material.WOODEN_SWORD
+                || material == Material.STONE_SWORD || material == Material.IRON_SWORD
+                || material == Material.DIAMOND_SWORD || material == Material.GOLDEN_SWORD)) {
+            event.setCancelled(true);
+            return;
+        }
+        AbstractBlockChangeEvent.BreakBlockChangeEventPlayer event1 =
+                new AbstractBlockChangeEvent.BreakBlockChangeEventPlayer(
+                new BBlockPosition(event.getBlock()),
+                (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getPlayer()));
         call(EventPriority.NORMAL, event1);
+        if (event1.isCancelled()) {
+            event.setCancelled(event1.isCancelled());
+        }
+    }
+
+    @EventHandler
+    public static void onEntitySpawnEvent(EntitySpawnEvent event) {
+        org.bukkit.entity.Entity entity = event.getEntity();
+        BEntitySpawnEvent spawnEvent = new BEntitySpawnEvent(new BExactPosition(event.getLocation()),
+                                                             ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
+                                                                     entity));
+        call(EventPriority.NORMAL, spawnEvent);
+        boolean cancelled = spawnEvent.isCancelled();
+        if (cancelled) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public static void onExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
+        List<SyncBlockPosition> positions = new ArrayList<>();
+        List<Block> list = event.blockList();
+        for (Block value : list) {
+            positions.add(new BBlockPosition(value));
+        }
+        Entity<?> entity = ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getEntity());
+        EntityExplosion explosion = new EntityExplosion(entity, positions);
+        Iterator<Block> iterator = event.blockList().iterator();
+        while (iterator.hasNext()) {
+            SyncBlockPosition block = new BBlockPosition(iterator.next());
+            AbstractBlockChangeEvent.BreakBlockChangeExplode event2 =
+                    new AbstractBlockChangeEvent.BreakBlockChangeExplode(
+                    block, explosion);
+            call(EventPriority.NORMAL, event2);
+            if (event2.isCancelled()) {
+                iterator.remove();
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        EntityExplosionSnapshot explosionSnapshot = new EntityExplosionSnapshot(explosion);
+        AbstractExplosionEvent.Post event3 = new AbstractExplosionEvent.Post(explosionSnapshot);
+        call(EventPriority.NORMAL, event3);
+    }
+
+    @EventHandler
+    public static void onItemSpawnEvent(ItemSpawnEvent event) {
+        org.bukkit.entity.Item item = event.getEntity();
+        BEntitySpawnEvent spawnEvent = new BEntitySpawnEvent(new BExactPosition(event.getLocation()),
+                                                             new BLiveDroppedItem(item));
+        call(EventPriority.NORMAL, spawnEvent);
+        boolean cancelled = spawnEvent.isCancelled();
+        if (cancelled) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public static void onPlayerInteractWithBlockEvent(PlayerInteractEvent event) {
+        if (event.getClickedBlock() == null || event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        int action = switch (event.getAction()) {
+            case RIGHT_CLICK_BLOCK -> EntityInteractEvent.PRIMARY_CLICK_ACTION;
+            case LEFT_CLICK_BLOCK -> EntityInteractEvent.SECONDARY_CLICK_ACTION;
+            default -> -1;
+        };
+        BEntityInteractEvent.PlayerInteractWithBlock event1 = new BEntityInteractEvent.PlayerInteractWithBlock(
+                new BBlockPosition(event.getClickedBlock()), action, DirectionUtils.toDirection(event.getBlockFace()),
+                (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getPlayer()));
+        call(EventPriority.NORMAL, event1);
+        if (event1.isCancelled()) {
+            event.setCancelled(event1.isCancelled());
+        }
     }
 
     @EventHandler
@@ -110,6 +256,15 @@ public class BukkitListener implements Listener {
         call(EventPriority.NORMAL, cEvent);
     }
 
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST)
+    public static void onPlayerKickedEvent(PlayerKickEvent event) {
+        LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
+                event.getPlayer());
+        BKickEvent kickEvent = new BKickEvent(player, event.leaveMessage());
+        call(EventPriority.HIGHEST, kickEvent);
+        event.leaveMessage(kickEvent.getLeaveMessage());
+    }
+
     @EventHandler
     public static void onPlayerPlaceBlock(BlockPlaceEvent event) {
         BlockDetails old = new BBlockDetails(event.getBlockReplacedState().getBlockData(), false);
@@ -118,7 +273,8 @@ public class BukkitListener implements Listener {
         LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
         List<BlockSnapshot<SyncBlockPosition>> collection = Collections.singletonList(new1.createSnapshot(position));
-        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 = new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
+        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 =
+                new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
                 position, old, new1, player, collection);
         call(EventPriority.NORMAL, event2);
         if (event2.isCancelled()) {
@@ -136,46 +292,13 @@ public class BukkitListener implements Listener {
         List<BlockSnapshot<SyncBlockPosition>> collection = new ArrayList<>();
         event.getReplacedBlockStates().forEach(bs -> collection.add(new BlockStateSnapshot(bs)));
 
-        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 = new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
+        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 =
+                new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
                 position, old, new1, player, collection);
         call(EventPriority.NORMAL, event2);
         if (event2.isCancelled()) {
             event.setCancelled(true);
         }
-    }
-
-    @EventHandler
-    public static void onItemSpawnEvent(ItemSpawnEvent event) {
-        org.bukkit.entity.Item item = event.getEntity();
-        BEntitySpawnEvent spawnEvent = new BEntitySpawnEvent(new BExactPosition(event.getLocation()),
-                                                             new BLiveDroppedItem(item));
-        call(EventPriority.NORMAL, spawnEvent);
-        boolean cancelled = spawnEvent.isCancelled();
-        if (cancelled) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public static void onEntitySpawnEvent(EntitySpawnEvent event) {
-        org.bukkit.entity.Entity entity = event.getEntity();
-        BEntitySpawnEvent spawnEvent = new BEntitySpawnEvent(new BExactPosition(event.getLocation()),
-                                                             ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
-                                                                     entity));
-        call(EventPriority.NORMAL, spawnEvent);
-        boolean cancelled = spawnEvent.isCancelled();
-        if (cancelled) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST)
-    public static void onPlayerKickedEvent(PlayerKickEvent event) {
-        LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
-                event.getPlayer());
-        BKickEvent kickEvent = new BKickEvent(player, event.leaveMessage());
-        call(EventPriority.HIGHEST, kickEvent);
-        event.leaveMessage(kickEvent.getLeaveMessage());
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST)
@@ -242,120 +365,5 @@ public class BukkitListener implements Listener {
         if (coreEvent.isCancelled()) {
             event.setCancelled(coreEvent.isCancelled());
         }
-    }
-
-    @EventHandler
-    public static void onPlayerInteractWithBlockEvent(PlayerInteractEvent event) {
-        if (event.getClickedBlock() == null || event.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
-        int action = switch (event.getAction()) {
-            case RIGHT_CLICK_BLOCK -> EntityInteractEvent.PRIMARY_CLICK_ACTION;
-            case LEFT_CLICK_BLOCK -> EntityInteractEvent.SECONDARY_CLICK_ACTION;
-            default -> -1;
-        };
-        BEntityInteractEvent.PlayerInteractWithBlock event1 = new BEntityInteractEvent.PlayerInteractWithBlock(
-                new BBlockPosition(event.getClickedBlock()), action, DirectionUtils.toDirection(event.getBlockFace()),
-                (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getPlayer()));
-        call(EventPriority.NORMAL, event1);
-        if (event1.isCancelled()) {
-            event.setCancelled(event1.isCancelled());
-        }
-    }
-
-    @EventHandler
-    public static void onExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
-        List<SyncBlockPosition> positions = new ArrayList<>();
-        List<Block> list = event.blockList();
-        for (Block value : list) {
-            positions.add(new BBlockPosition(value));
-        }
-        Entity<?> entity = ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getEntity());
-        EntityExplosion explosion = new EntityExplosion(entity, positions);
-        Iterator<Block> iterator = event.blockList().iterator();
-        while (iterator.hasNext()) {
-            SyncBlockPosition block = new BBlockPosition(iterator.next());
-            AbstractBlockChangeEvent.BreakBlockChangeExplode event2 = new AbstractBlockChangeEvent.BreakBlockChangeExplode(
-                    block, explosion);
-            call(EventPriority.NORMAL, event2);
-            if (event2.isCancelled()) {
-                iterator.remove();
-                event.setCancelled(true);
-                return;
-            }
-        }
-
-        EntityExplosionSnapshot explosionSnapshot = new EntityExplosionSnapshot(explosion);
-        AbstractExplosionEvent.Post event3 = new AbstractExplosionEvent.Post(explosionSnapshot);
-        call(EventPriority.NORMAL, event3);
-    }
-
-    @EventHandler
-    public static void onBlockBreakByPlayer(BlockBreakEvent event) {
-        Player player = event.getPlayer();
-        Material material = player.getInventory().getItemInMainHand().getType();
-        if (player.getGameMode() == GameMode.CREATIVE && (material == Material.WOODEN_SWORD
-                || material == Material.STONE_SWORD || material == Material.IRON_SWORD
-                || material == Material.DIAMOND_SWORD || material == Material.GOLDEN_SWORD)) {
-            event.setCancelled(true);
-            return;
-        }
-        AbstractBlockChangeEvent.BreakBlockChangeEventPlayer event1 = new AbstractBlockChangeEvent.BreakBlockChangeEventPlayer(
-                new BBlockPosition(event.getBlock()),
-                (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getPlayer()));
-        call(EventPriority.NORMAL, event1);
-        if (event1.isCancelled()) {
-            event.setCancelled(event1.isCancelled());
-        }
-    }
-
-    public static <E extends Event> E call(EventPriority priority, E event) {
-        Set<BEventLaunch> methods = getMethods(priority, event.getClass());
-        methods.forEach(m -> m.run(event));
-        return event;
-    }
-
-    private static Set<BEventLaunch> getMethods(EventPriority priority, Class<? extends Event> classEvent) {
-        Set<BEventLaunch> methods = new HashSet<>();
-        TranslateCore.getEventManager().getEventListeners().forEach((key, value) -> value.forEach(el -> {
-            for (Method method : el.getClass().getDeclaredMethods()) {
-                HEvent hEvent = method.getAnnotation(HEvent.class);
-                if (hEvent == null) {
-                    continue;
-                }
-                if ((priority != EventPriority.IGNORE) && hEvent.priority() != priority
-                        && hEvent.priority() != EventPriority.IGNORE) {
-                    continue;
-                }
-                if (methods.stream().anyMatch(m -> method.getName().contains("$"))) {
-                    continue;
-                }
-                Parameter[] parameters = method.getParameters();
-                if (parameters.length == 0) {
-                    String message = "Failed to know what to do:" + " HEvent found on method, but no event on " + el
-                            .getClass()
-                            .getName() + "." + method.getName() + "()";
-                    TranslateCore.getConsole().sendMessage(Component.text(message).color(NamedTextColor.RED));
-                    continue;
-                }
-                if (!Modifier.isPublic(method.getModifiers())) {
-                    continue;
-                }
-                Class<?> class1 = parameters[0].getType();
-                if (!Event.class.isAssignableFrom(classEvent)) {
-                    String parameterNames = Arrays
-                            .stream(parameters)
-                            .map(p -> p.getType().getSimpleName() + " " + p.getName())
-                            .collect(Collectors.joining(", "));
-                    System.err.println("Failed to know what to do: HEvent found on method, but no known event on " + el
-                            .getClass()
-                            .getName() + "." + method.getName() + "(" + parameterNames + ")");
-                }
-                if (class1.isAssignableFrom(classEvent)) {
-                    methods.add(new BEventLaunch(key, el, method));
-                }
-            }
-        }));
-        return methods;
     }
 }
