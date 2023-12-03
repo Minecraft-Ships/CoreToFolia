@@ -9,25 +9,19 @@ import java.util.regex.Pattern;
 
 public class BPlatformDetails implements PlatformDetails {
 
-    //git-Paper-370 (MC: 1.19.3)
-
     private final String type;
     private Integer version;
 
     public BPlatformDetails() {
-        String versionString = Bukkit.getVersion();
-        String[] versionSplit = versionString.split("-");
-        this.type = versionSplit[1];
-        if (this.type.equals("Paper")) {
-            this.version = Integer.parseInt(versionSplit[2].substring(0, versionSplit[2].indexOf(" ")));
-            return;
-        }
+        this.type = Bukkit.getName();
         try {
-            this.version = Integer.parseInt(versionSplit[0]);
+            String versionString = Bukkit.getMinecraftVersion();
+            String[] versionSplit = versionString.split(Pattern.quote("."));
+            this.version = Integer.parseInt(versionSplit[1]);
         } catch (Throwable e) {
             System.err.println(
                     "Unknown version number for implementation: Report this on dev.bukkit asking for support for "
-                            + this.type);
+                            + Bukkit.getVersion());
         }
     }
 
