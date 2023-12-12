@@ -54,4 +54,9 @@ public class BPlatformDetails implements PlatformDetails {
         }
         return new CorePluginVersion(major, minor, patch, this.type, this.version);
     }
+
+    @Override
+    public char getTagChar() {
+        return 'F';
+    }
 }

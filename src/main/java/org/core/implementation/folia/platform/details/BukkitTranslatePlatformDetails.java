@@ -19,4 +19,9 @@ public class BukkitTranslatePlatformDetails implements PlatformDetails {
     public @NotNull CorePluginVersion getVersion() {
         return new CorePluginVersion(1, 0, 0);
     }
+
+    @Override
+    public char getTagChar() {
+        return 'F';
+    }
 }
