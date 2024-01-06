@@ -20,7 +20,7 @@ public class BUnknownContainerTileEntitySnapshot implements UnknownContainerTile
         this.inventory = new BUnknownBlockAttachedInventorySnapshot(position, types);
     }
 
-    public BUnknownContainerTileEntitySnapshot(UnknownContainerTiledEntity entity) {
+    public BUnknownContainerTileEntitySnapshot(@SuppressWarnings("TypeMayBeWeakened") UnknownContainerTiledEntity entity) {
         this.inventory = entity.getInventory().createSnapshot();
     }
 

@@ -20,7 +20,7 @@ public class BSignEntity extends AbstractLiveTileEntity implements LiveSignTileE
         this((org.bukkit.block.Sign) state);
     }
 
-    public BSignEntity(org.bukkit.block.Sign state) {
+    public BSignEntity(@SuppressWarnings("TypeMayBeWeakened") org.bukkit.block.Sign state) {
         super(state);
     }
 

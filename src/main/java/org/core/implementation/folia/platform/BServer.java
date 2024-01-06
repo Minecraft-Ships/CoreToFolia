@@ -53,7 +53,7 @@ public class BServer implements PlatformServer {
     }
 
     @Override
-    public void applyBlockSnapshots(Collection<? extends BlockSnapshot.AsyncBlockSnapshot> collection,
+    public void applyBlockSnapshots(@NotNull Collection<? extends BlockSnapshot.AsyncBlockSnapshot> collection,
                                     @NotNull Plugin plugin,
                                     @NotNull Runnable onComplete) {
         Set<BlockSnapshot<ASyncBlockPosition>> withTileEntities = collection

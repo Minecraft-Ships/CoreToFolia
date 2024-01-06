@@ -20,7 +20,7 @@ public class BDispenserTileEntitySnapshot implements DispenserTileEntitySnapshot
         this.dis = new BDispenserInventorySnapshot();
     }
 
-    public BDispenserTileEntitySnapshot(DispenserTileEntity dte) {
+    public BDispenserTileEntitySnapshot(@SuppressWarnings("TypeMayBeWeakened") DispenserTileEntity dte) {
         this.dis = dte.getInventory().createSnapshot();
     }
 

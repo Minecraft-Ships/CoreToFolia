@@ -18,44 +18,6 @@ import java.util.Set;
 
 public class BLiveUnknownBlockAttachedInventory implements LiveUnknownBlockAttachedInventory {
 
-    protected final org.bukkit.block.Container state;
-    protected final Set<Slot> slots = new HashSet<>();
-    public BLiveUnknownBlockAttachedInventory(org.bukkit.block.Container state) {
-        this.state = state;
-        for (int A = 0; A < state.getInventory().getSize(); A++) {
-            this.slots.add(new UnknownSlot(A));
-        }
-    }
-
-    @Override
-    public Set<Slot> getSlots() {
-        return new HashSet<>(this.slots);
-    }
-
-    @Override
-    public Optional<Slot> getSlot(int slotPos) {
-        return this.slots
-                .stream()
-                .filter(s -> s.getPosition().isPresent())
-                .filter(s -> s.getPosition().get() == slotPos)
-                .findAny();
-    }
-
-    @Override
-    public UnknownBlockAttachedInventorySnapshot createSnapshot() {
-        return new BUnknownBlockAttachedInventorySnapshot(this);
-    }
-
-    @Override
-    public BlockType[] getAllowedBlockType() {
-        return new BlockType[]{new BBlockType(this.state.getType())};
-    }
-
-    @Override
-    public SyncBlockPosition getPosition() {
-        return new BBlockPosition(this.state.getBlock());
-    }
-
     public class UnknownSlot implements Slot {
 
         protected final int position;
@@ -89,5 +51,44 @@ public class BLiveUnknownBlockAttachedInventory implements LiveUnknownBlockAttac
             container.update();
             return this;
         }
+    }
+
+    protected final org.bukkit.block.Container state;
+    protected final Set<Slot> slots = new HashSet<>();
+
+    public BLiveUnknownBlockAttachedInventory(org.bukkit.block.Container state) {
+        this.state = state;
+        for (int index = 0; index < state.getInventory().getSize(); index++) {
+            this.slots.add(new UnknownSlot(index));
+        }
+    }
+
+    @Override
+    public Set<Slot> getSlots() {
+        return new HashSet<>(this.slots);
+    }
+
+    @Override
+    public Optional<Slot> getSlot(int slotPos) {
+        return this.slots
+                .stream()
+                .filter(s -> s.getPosition().isPresent())
+                .filter(s -> s.getPosition().get() == slotPos)
+                .findAny();
+    }
+
+    @Override
+    public UnknownBlockAttachedInventorySnapshot createSnapshot() {
+        return new BUnknownBlockAttachedInventorySnapshot(this);
+    }
+
+    @Override
+    public BlockType[] getAllowedBlockType() {
+        return new BlockType[]{new BBlockType(this.state.getType())};
+    }
+
+    @Override
+    public SyncBlockPosition getPosition() {
+        return new BBlockPosition(this.state.getBlock());
     }
 }

@@ -11,6 +11,7 @@ import org.core.implementation.folia.world.position.impl.sync.BExactPosition;
 import org.core.vector.type.Vector3;
 import org.core.world.position.impl.Position;
 import org.core.world.position.impl.sync.SyncExactPosition;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -143,9 +144,8 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
     }
 
     @Override
-    public boolean setPosition(Position<? extends Number> position) {
-        BExactPosition position1 = (position instanceof BExactPosition) ? (BExactPosition) position :
-                (BExactPosition) position.toExactPosition();
+    public boolean setPosition(@NotNull Position<? extends Number> position) {
+        BExactPosition position1 = (position instanceof BExactPosition) ? (BExactPosition) position : (BExactPosition) position.toExactPosition();
         return this.entity.teleport(position1.toBukkitLocation());
     }
 

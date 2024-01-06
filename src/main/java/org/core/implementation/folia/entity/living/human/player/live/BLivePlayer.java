@@ -2,6 +2,7 @@ package org.core.implementation.folia.entity.living.human.player.live;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -9,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.core.adventureText.AText;
-import org.core.adventureText.adventure.AdventureText;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
 import org.core.implementation.folia.entity.BLiveEntity;
@@ -21,6 +21,7 @@ import org.core.permission.Permission;
 import org.core.world.position.impl.BlockPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -124,19 +125,29 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, Forw
     }
 
     @Override
+    public @NotNull @UnmodifiableView Iterable<? extends BossBar> bossBars() {
+        return this.getBukkitEntity().activeBossBars();
+    }
+
+    @Override
+    public void sendMessage(@NotNull Component message) {
+        this.getBukkitEntity().sendMessage(message);
+    }
+
+    @Override
     public PlayerSnapshot createSnapshot() {
         return new BPlayerSnapshot(this);
+    }
+
+    @Override
+    public boolean hasGravity() {
+        return this.getBukkitEntity().hasGravity();
     }
 
     @Override
     public BLivePlayer setGravity(boolean check) {
         this.getBukkitEntity().setGravity(check);
         return this;
-    }
-
-    @Override
-    public boolean hasGravity() {
-        return this.getBukkitEntity().hasGravity();
     }
 
     @Override
@@ -149,7 +160,7 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, Forw
     @Override
     @Deprecated(forRemoval = true)
     public LivePlayer sendMessage(AText message) {
-        this.sendMessage((ComponentLike)message);
+        this.sendMessage((ComponentLike) message);
         return this;
     }
 
@@ -163,11 +174,6 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, Forw
         Identity identity = uuid == null ? Identity.nil() : Identity.identity(uuid);
         Player player = this.getBukkitEntity();
         player.sendMessage(identity, message);
-    }
-
-    @Override
-    public void sendMessage(@NotNull Component message) {
-        ForwardingAudience.super.sendMessage(message);
     }
 
     @Override

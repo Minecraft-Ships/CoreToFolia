@@ -16,39 +16,6 @@ import java.util.Set;
 
 public class BLiveChestInventory implements LiveChestInventory {
 
-    protected final org.bukkit.block.Chest chest;
-    protected final Set<Slot> slots = new HashSet<>();
-    public BLiveChestInventory(org.bukkit.block.Chest chest) {
-        this.chest = chest;
-        for (int A = 0; A < this.chest.getSnapshotInventory().getSize(); A++) {
-            this.slots.add(new BLiveChestInventory.ChestSlot(A));
-        }
-    }
-
-    @Override
-    public SyncBlockPosition getPosition() {
-        return new BBlockPosition(this.chest.getBlock());
-    }
-
-    @Override
-    public Set<Slot> getSlots() {
-        return this.slots;
-    }
-
-    @Override
-    public Optional<Slot> getSlot(int slotPos) {
-        return this.slots
-                .stream()
-                .filter(s -> s.getPosition().isPresent())
-                .filter(s -> s.getPosition().get() == slotPos)
-                .findAny();
-    }
-
-    @Override
-    public ChestInventorySnapshot createSnapshot() {
-        return new BChestInventorySnapshot(this);
-    }
-
     public class ChestSlot implements Slot {
 
         protected final int pos;
@@ -83,5 +50,39 @@ public class BLiveChestInventory implements LiveChestInventory {
             BLiveChestInventory.this.chest.update();
             return this;
         }
+    }
+
+    protected final org.bukkit.block.Chest chest;
+    protected final Set<Slot> slots = new HashSet<>();
+
+    public BLiveChestInventory(org.bukkit.block.Chest chest) {
+        this.chest = chest;
+        for (int index = 0; index < this.chest.getSnapshotInventory().getSize(); index++) {
+            this.slots.add(new BLiveChestInventory.ChestSlot(index));
+        }
+    }
+
+    @Override
+    public SyncBlockPosition getPosition() {
+        return new BBlockPosition(this.chest.getBlock());
+    }
+
+    @Override
+    public Set<Slot> getSlots() {
+        return this.slots;
+    }
+
+    @Override
+    public Optional<Slot> getSlot(int slotPos) {
+        return this.slots
+                .stream()
+                .filter(s -> s.getPosition().isPresent())
+                .filter(s -> s.getPosition().get() == slotPos)
+                .findAny();
+    }
+
+    @Override
+    public ChestInventorySnapshot createSnapshot() {
+        return new BChestInventorySnapshot(this);
     }
 }

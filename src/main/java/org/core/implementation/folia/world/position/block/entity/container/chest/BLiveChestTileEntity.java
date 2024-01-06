@@ -14,7 +14,7 @@ public class BLiveChestTileEntity extends AbstractLiveTileEntity implements Live
         this((org.bukkit.block.Chest) state);
     }
 
-    public BLiveChestTileEntity(org.bukkit.block.Chest state) {
+    public BLiveChestTileEntity(@SuppressWarnings("TypeMayBeWeakened") org.bukkit.block.Chest state) {
         super(state);
     }
 

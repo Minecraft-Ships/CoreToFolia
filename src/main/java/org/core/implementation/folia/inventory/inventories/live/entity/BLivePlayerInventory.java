@@ -64,8 +64,8 @@ public class BLivePlayerInventory implements LivePlayerInventory {
         final Set<Slot> slots = new HashSet<>();
 
         private PlayerMainInventory() {
-            for (int A = 9; A < 35; A++) {
-                this.slots.add(new BLivePlayerInventory.PlayerItemSlot(A));
+            for (int index = 9; index < 35; index++) {
+                this.slots.add(new BLivePlayerInventory.PlayerItemSlot(index));
             }
         }
 
@@ -80,8 +80,8 @@ public class BLivePlayerInventory implements LivePlayerInventory {
         final Set<Slot> slots = new HashSet<>();
 
         private PlayerHotbar() {
-            for (int A = 0; A < 9; A++) {
-                this.slots.add(new BLivePlayerInventory.PlayerItemSlot(A));
+            for (int index = 0; index < 9; index++) {
+                this.slots.add(new BLivePlayerInventory.PlayerItemSlot(index));
             }
         }
 

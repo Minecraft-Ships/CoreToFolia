@@ -20,7 +20,7 @@ public class BDropperTileEntitySnapshot implements DropperTileEntitySnapshot {
         this.inventory = new BDropperInventorySnapshot();
     }
 
-    public BDropperTileEntitySnapshot(DropperTileEntity dte) {
+    public BDropperTileEntitySnapshot(@SuppressWarnings("TypeMayBeWeakened") DropperTileEntity dte) {
         this.inventory = dte.getInventory().createSnapshot();
     }
 

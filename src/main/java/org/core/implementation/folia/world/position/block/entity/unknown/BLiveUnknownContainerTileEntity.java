@@ -8,7 +8,7 @@ import org.core.world.position.block.entity.container.unknown.UnknownContainerTi
 
 public class BLiveUnknownContainerTileEntity extends AbstractLiveTileEntity implements LiveUnknownContainerTileEntity {
 
-    public BLiveUnknownContainerTileEntity(org.bukkit.block.Container state) {
+    public BLiveUnknownContainerTileEntity(@SuppressWarnings("TypeMayBeWeakened") org.bukkit.block.Container state) {
         super(state);
     }
 

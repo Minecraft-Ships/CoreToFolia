@@ -32,9 +32,9 @@ public class BPatternLayers implements PatternLayers {
     }
 
     @Override
-    public PatternLayers addLayer(int A, PatternLayer layer) {
+    public PatternLayers addLayer(int layerIndex, PatternLayer layer) {
         List<Pattern> list = this.banner.getPatterns();
-        list.add(A, ((BPatternLayer) layer).getBukkitValue());
+        list.add(layerIndex, ((BPatternLayer) layer).getBukkitValue());
         this.banner.setPatterns(list);
         this.banner.update();
         return this;
@@ -49,8 +49,8 @@ public class BPatternLayers implements PatternLayers {
 
     @Override
     public PatternLayers removeLayers() {
-        for (int A = this.banner.numberOfPatterns(); A > 0; A--) {
-            this.banner.removePattern(A);
+        for (int index = this.banner.numberOfPatterns(); index > 0; index--) {
+            this.banner.removePattern(index);
         }
         this.banner.update();
         return this;

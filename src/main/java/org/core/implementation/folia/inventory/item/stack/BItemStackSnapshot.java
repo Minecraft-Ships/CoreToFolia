@@ -1,12 +1,9 @@
 package org.core.implementation.folia.inventory.item.stack;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
 import org.core.inventory.item.stack.ItemStackSnapshot;
 import org.core.inventory.item.stack.data.ItemStackData;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 public class BItemStackSnapshot extends BAbstractItemStack implements ItemStackSnapshot {

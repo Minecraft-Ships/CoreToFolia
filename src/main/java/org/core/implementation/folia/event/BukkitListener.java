@@ -80,7 +80,7 @@ public class BukkitListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         SyncExactPosition before = new BExactPosition(event.getFrom());
         SyncExactPosition after = new BExactPosition(event.getTo());
-        if(before.equals(after)){
+        if (before.equals(after)) {
             return;
         }
 
@@ -166,8 +166,7 @@ public class BukkitListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        AbstractBlockChangeEvent.BreakBlockChangeEventPlayer event1 =
-                new AbstractBlockChangeEvent.BreakBlockChangeEventPlayer(
+        AbstractBlockChangeEvent.BreakBlockChangeEventPlayer event1 = new AbstractBlockChangeEvent.BreakBlockChangeEventPlayer(
                 new BBlockPosition(event.getBlock()),
                 (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(event.getPlayer()));
         call(EventPriority.NORMAL, event1);
@@ -201,8 +200,7 @@ public class BukkitListener implements Listener {
         Iterator<Block> iterator = event.blockList().iterator();
         while (iterator.hasNext()) {
             SyncBlockPosition block = new BBlockPosition(iterator.next());
-            AbstractBlockChangeEvent.BreakBlockChangeExplode event2 =
-                    new AbstractBlockChangeEvent.BreakBlockChangeExplode(
+            AbstractBlockChangeEvent.BreakBlockChangeExplode event2 = new AbstractBlockChangeEvent.BreakBlockChangeExplode(
                     block, explosion);
             call(EventPriority.NORMAL, event2);
             if (event2.isCancelled()) {
@@ -273,8 +271,7 @@ public class BukkitListener implements Listener {
         LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
         List<BlockSnapshot<SyncBlockPosition>> collection = Collections.singletonList(new1.createSnapshot(position));
-        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 =
-                new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
+        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 = new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
                 position, old, new1, player, collection);
         call(EventPriority.NORMAL, event2);
         if (event2.isCancelled()) {
@@ -292,8 +289,7 @@ public class BukkitListener implements Listener {
         List<BlockSnapshot<SyncBlockPosition>> collection = new ArrayList<>();
         event.getReplacedBlockStates().forEach(bs -> collection.add(new BlockStateSnapshot(bs)));
 
-        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 =
-                new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
+        AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent event2 = new AbstractBlockChangeEvent.PlaceBlockPlayerPostEvent(
                 position, old, new1, player, collection);
         call(EventPriority.NORMAL, event2);
         if (event2.isCancelled()) {
@@ -321,7 +317,7 @@ public class BukkitListener implements Listener {
 
         BSignEntitySnapshot snapshot = new BSignEntitySnapshot();
 
-        boolean front = true;
+        boolean front;
         BSignChangeEvent coreEvent;
         try {
             Object side = event.getClass().getMethod("getSide").invoke(event);
@@ -329,7 +325,7 @@ public class BukkitListener implements Listener {
             front = (side == frontSide);
 
             Object signSide = sign.getClass().getDeclaredMethod("getSide", side.getClass()).invoke(sign, side);
-            Collection<Component> previousLines = (List<Component>) signSide
+            Collection<Component> previousLines = (Collection<Component>) signSide
                     .getClass()
                     .getDeclaredMethod("lines")
                     .invoke(signSide);

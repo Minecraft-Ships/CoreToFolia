@@ -84,6 +84,9 @@ public class BLiveItemFrame extends BLiveEntity<ItemFrame> implements LiveItemFr
                 rotation = Rotation.CLOCKWISE_135;
             }
         }
+        if (rotation == null) {
+            throw new IllegalArgumentException(direction.getName() + " is not supported");
+        }
         this.getBukkitEntity().setRotation(rotation);
         return this;
     }

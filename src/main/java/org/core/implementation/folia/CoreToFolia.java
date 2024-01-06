@@ -1,7 +1,9 @@
 package org.core.implementation.folia;
 
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.core.TranslateCore;
 import org.core.config.ConfigManager;
 import org.core.eco.CurrencyManager;
@@ -42,7 +44,7 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
 
     }
 
-    public void init2(JavaPlugin plugin) {
+    public void init2(Plugin plugin) {
         Bukkit.getPluginManager().registerEvents(new PaperListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new BukkitListener(), plugin);
     }
@@ -73,8 +75,15 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public ServerBossBar bossBuilder() {
-        return new BServerBossBar();
+        return bossBuilder(BossBar.bossBar(Component.empty(), 0, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS));
+    }
+
+    @Override
+    @Deprecated(forRemoval = true)
+    public ServerBossBar bossBuilder(BossBar bar) {
+        return new BServerBossBar(bar);
     }
 
     @Override

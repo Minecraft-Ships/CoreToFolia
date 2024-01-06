@@ -396,7 +396,7 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public Collection<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> getEntityTypes() {
+    public @NotNull Collection<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> getEntityTypes() {
         return new HashSet<>(this.entityTypes);
     }
 
@@ -436,12 +436,12 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public Collection<ParrotType> getParrotType() {
+    public @NotNull Collection<ParrotType> getParrotType() {
         return Stream.of(Parrot.Variant.values()).map(BParrotType::new).collect(Collectors.toSet());
     }
 
     @Override
-    public Collection<ApplyPhysicsFlag> getApplyPhysics() {
+    public @NotNull Collection<ApplyPhysicsFlag> getApplyPhysics() {
         Collection<ApplyPhysicsFlag> list = new ArrayList<>();
         list.add(BApplyPhysicsFlag.DEFAULT);
         list.add(BApplyPhysicsFlag.NONE);
@@ -449,7 +449,7 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public Collection<Permission> getPermissions() {
+    public @NotNull Collection<Permission> getPermissions() {
         return Bukkit
                 .getServer()
                 .getPluginManager()
@@ -460,7 +460,7 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public Collection<Structure> getStructures() {
+    public @NotNull Collection<Structure> getStructures() {
         if (this.structurePlatform == null) {
             return Collections.emptyList();
         }
@@ -506,17 +506,17 @@ public class BukkitPlatform implements Platform {
 
     @Override
     @Deprecated
-    public Collection<UnspecificParser<?>> getUnspecifiedParsers() {
+    public @NotNull Collection<UnspecificParser<?>> getUnspecifiedParsers() {
         return this.parsers;
     }
 
     @Override
-    public Collection<TileEntitySnapshot<? extends TileEntity>> getDefaultTileEntities() {
+    public @NotNull Collection<TileEntitySnapshot<? extends TileEntity>> getDefaultTileEntities() {
         return this.defaultTileEntities;
     }
 
     @Override
-    public CorePluginVersion getMinecraftVersion() {
+    public @NotNull CorePluginVersion getMinecraftVersion() {
         String version = Bukkit.getServer().getVersion();
         try {
             version = version.split("MC: ")[1];
@@ -555,22 +555,22 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public Set<Plugin> getPlugins() {
+    public @NotNull Set<Plugin> getPlugins() {
         return Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(BPlugin::new).collect(Collectors.toSet());
     }
 
     @Override
-    public File getPlatformPluginsFolder() {
+    public @NotNull File getPlatformPluginsFolder() {
         return new File("plugins");
     }
 
     @Override
-    public File getPlatformConfigFolder() {
+    public @NotNull File getPlatformConfigFolder() {
         return this.getPlatformPluginsFolder();
     }
 
     @Override
-    public <E extends CustomEvent> E callEvent(E event) {
+    public <E extends CustomEvent> @NotNull E callEvent(E event) {
         return BukkitListener.call(EventPriority.IGNORE, event);
     }
 }

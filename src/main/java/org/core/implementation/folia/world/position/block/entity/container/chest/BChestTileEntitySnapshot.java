@@ -20,7 +20,7 @@ public class BChestTileEntitySnapshot implements ChestTileEntitySnapshot {
         this.inventory = new BChestInventorySnapshot();
     }
 
-    public BChestTileEntitySnapshot(ChestTileEntity cte) {
+    public BChestTileEntitySnapshot(@SuppressWarnings("TypeMayBeWeakened") ChestTileEntity cte) {
         this.inventory = cte.getInventory().createSnapshot();
     }
 

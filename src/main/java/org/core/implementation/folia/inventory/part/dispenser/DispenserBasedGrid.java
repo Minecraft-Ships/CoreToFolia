@@ -11,26 +11,6 @@ import java.util.*;
 
 public abstract class DispenserBasedGrid implements Grid3x3 {
 
-    protected final List<DispenserSlot> slots = new ArrayList<>();
-
-    public DispenserBasedGrid() {
-        for (int A = 0; A < 9; A++) {
-            this.slots.add(new DispenserSlot(A));
-        }
-    }
-
-    protected abstract org.bukkit.block.Container getContainer();
-
-    @Override
-    public Set<Slot> getSlots() {
-        return new HashSet<>(this.slots);
-    }
-
-    @Override
-    public Grid3x3Snapshot createSnapshot() {
-        return new Grid3x3Snapshot(this);
-    }
-
     public class DispenserSlot implements Slot {
 
         private final int position;
@@ -69,5 +49,25 @@ public abstract class DispenserBasedGrid implements Grid3x3 {
             container.update();
             return this;
         }
+    }
+
+    protected final List<DispenserSlot> slots = new ArrayList<>();
+
+    public DispenserBasedGrid() {
+        for (int index = 0; index < 9; index++) {
+            this.slots.add(new DispenserSlot(index));
+        }
+    }
+
+    protected abstract org.bukkit.block.Container getContainer();
+
+    @Override
+    public Set<Slot> getSlots() {
+        return new HashSet<>(this.slots);
+    }
+
+    @Override
+    public Grid3x3Snapshot createSnapshot() {
+        return new Grid3x3Snapshot(this);
     }
 }

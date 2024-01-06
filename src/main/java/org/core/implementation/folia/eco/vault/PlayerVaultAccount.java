@@ -7,7 +7,6 @@ import org.core.eco.account.PlayerAccount;
 import org.core.eco.transaction.Transaction;
 import org.core.eco.transaction.pending.PendingSingleTransactionImpl;
 import org.core.eco.transaction.pending.PendingTransaction;
-import org.core.eco.transaction.result.TransactionResult;
 import org.core.eco.transaction.result.impl.TransactionResultImpl;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,12 +21,6 @@ public class PlayerVaultAccount implements PlayerAccount {
 
     public PlayerVaultAccount(@NotNull OfflinePlayer player) {
         this.player = player;
-    }
-
-
-    @Override
-    public BigDecimal getBalance(@NotNull Currency currency) {
-        return VaultService.getBalance(this.player).map(BigDecimal::valueOf).orElse(BigDecimal.ZERO);
     }
 
     @Override
@@ -50,11 +43,17 @@ public class PlayerVaultAccount implements PlayerAccount {
             case SET -> VaultService.setBalance(this.player, transaction.getAmount().doubleValue());
         };
         TransactionResultImpl result;
-        if(response.transactionSuccess()){
-            result = new TransactionResultImpl(transaction, BigDecimal.valueOf(originalAmount), BigDecimal.valueOf(response.amount));
-        }else{
+        if (response.transactionSuccess()) {
+            result = new TransactionResultImpl(transaction, BigDecimal.valueOf(originalAmount),
+                                               BigDecimal.valueOf(response.amount));
+        } else {
             result = new TransactionResultImpl(transaction, BigDecimal.valueOf(originalAmount), response.errorMessage);
         }
         return new PendingSingleTransactionImpl(this, transaction, CompletableFuture.completedFuture(result));
+    }
+
+    @Override
+    public @NotNull BigDecimal getBalance(@NotNull Currency currency) {
+        return VaultService.getBalance(this.player).map(BigDecimal::valueOf).orElse(BigDecimal.ZERO);
     }
 }

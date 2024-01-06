@@ -92,7 +92,7 @@ public class BUnknownBlockAttachedInventorySnapshot implements UnknownBlockAttac
             return;
         }
         for (SlotSnapshot slot : this.slots) {
-            slot.getItem().ifPresent(f -> ubai.getSlot(slot.getPosition().get()).get().setItem(f));
+            slot.getItem().ifPresent(f -> ubai.getSlot(slot.getPosition().orElseThrow()).orElseThrow().setItem(f));
         }
     }
 }

@@ -2,6 +2,8 @@ package org.core.implementation.folia.entity;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -61,7 +63,30 @@ public class EntitySnapshotValue<E, O> extends AbstractSnapshotValue<E, O> imple
 
     public static final EntitySnapshotValue<Damageable, Double> HEALTH = new EntitySnapshotValue<>(Damageable.class,
                                                                                                    Damageable::getHealth,
-                                                                                                   Damageable::setHealth);
+                                                                                                   Damageable::setHealth,
+                                                                                                   (entity, health) -> {
+                                                                                                       AttributeInstance attribute = entity
+                                                                                                               .getType()
+                                                                                                               .getDefaultAttributes()
+                                                                                                               .getAttribute(
+                                                                                                                       Attribute.GENERIC_MAX_HEALTH);
+                                                                                                       if (attribute
+                                                                                                               == null) {
+                                                                                                           return;
+                                                                                                       }
+                                                                                                       double maxHealth = attribute.getValue();
+
+                                                                                                       if (health
+                                                                                                               > maxHealth
+                                                                                                               || 0
+                                                                                                               < health) {
+                                                                                                           throw new RuntimeException(
+                                                                                                                   "Health value needs to be between 0-"
+                                                                                                                           + maxHealth
+                                                                                                                           + ", found "
+                                                                                                                           + health);
+                                                                                                       }
+                                                                                                   });
     public static final EntitySnapshotValue<Damageable, Double> ABSORPTION = new EntitySnapshotValue<>(Damageable.class,
                                                                                                        Damageable::getAbsorptionAmount,
                                                                                                        Damageable::setAbsorptionAmount);
@@ -310,6 +335,17 @@ public class EntitySnapshotValue<E, O> extends AbstractSnapshotValue<E, O> imple
 
     private final Class<E> clazz;
     private String id;
+
+    public EntitySnapshotValue(Class<E> clazz,
+                               Function<E, O> getter,
+                               BiConsumer<E, O> setter,
+                               BiConsumer<E, O> validate) {
+        this(clazz, (entity) -> {
+            O newValue = getter.apply(entity);
+            validate.accept(entity, newValue);
+            return newValue;
+        }, setter);
+    }
 
     public EntitySnapshotValue(Class<E> clazz, O value, Function<E, O> getter, BiConsumer<E, O> setter) {
         super(value, getter, setter);

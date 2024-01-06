@@ -17,6 +17,7 @@ import org.core.utils.entry.AbstractSnapshotValue;
 import org.core.vector.type.Vector3;
 import org.core.world.position.impl.Position;
 import org.core.world.position.impl.sync.SyncExactPosition;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
 
     private final EntityType<E, ? extends EntitySnapshot<E>> type;
     private final E createdFrom;
-    private final @Nullable byte[] persistentData;
+    private final byte[] persistentData;
     private Set<EntitySnapshotValue<? super BE, ?>> snapshotValues = new HashSet<>();
 
     public BSnapshotValueEntity(E entity) {
@@ -53,18 +54,17 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
     }
 
     @Override
-    public Entity<EntitySnapshot<? extends LiveEntity>> addPassengers(Collection<? extends EntitySnapshot<?
-            extends LiveEntity>> entities) {
+    public Entity<EntitySnapshot<? extends LiveEntity>> addPassengers(Collection<? extends EntitySnapshot<? extends LiveEntity>> entities) {
         return this;
     }
 
     @Override
     public Entity<EntitySnapshot<? extends LiveEntity>> setCustomName(@Nullable Component text) {
         if (text == null) {
-            this.<String>getSnapshotValue("CUSTOM_NAME").get().setValue(null);
+            this.<String>getSnapshotValue("CUSTOM_NAME").orElseThrow().setValue(null);
             return this;
         }
-        this.<String>getSnapshotValue("CUSTOM_NAME").get().setValue(ComponentUtils.toGson(text));
+        this.<String>getSnapshotValue("CUSTOM_NAME").orElseThrow().setValue(ComponentUtils.toGson(text));
         return this;
     }
 
@@ -81,19 +81,19 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
 
     @Override
     public double getPitch() {
-        return this.<Location>getSnapshotValue("LOCATION").get().getValue().getPitch();
+        return this.<Location>getSnapshotValue("LOCATION").orElseThrow().getValue().getPitch();
     }
 
     @Override
     public Entity<EntitySnapshot<? extends LiveEntity>> setPitch(double value) {
-        Location loc = this.<Location>getSnapshotValue("LOCATION").get().getValue();
+        Location loc = this.<Location>getSnapshotValue("LOCATION").orElseThrow().getValue();
         loc.setPitch((float) value);
         return this;
     }
 
     @Override
     public SyncExactPosition getPosition() {
-        return new BExactPosition(this.<Location>getSnapshotValue("LOCATION").get().getValue());
+        return new BExactPosition(this.<Location>getSnapshotValue("LOCATION").orElseThrow().getValue());
     }
 
     @Override
@@ -113,7 +113,7 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
 
     @Override
     public Vector3<Double> getVelocity() {
-        Vector vector = this.<Vector>getSnapshotValue("VELOCITY").get().getValue();
+        Vector vector = this.<Vector>getSnapshotValue("VELOCITY").orElseThrow().getValue();
         return Vector3.valueOf(vector.getX(), vector.getY(), vector.getZ());
     }
 
@@ -121,42 +121,42 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
     public Entity<EntitySnapshot<? extends LiveEntity>> setVelocity(Vector3<Double> velocity) {
         this
                 .<Vector>getSnapshotValue("VELOCITY")
-                .get()
+                .orElseThrow()
                 .setValue(new Vector(velocity.getX(), velocity.getY(), velocity.getZ()));
         return this;
     }
 
     @Override
     public double getYaw() {
-        return this.<Location>getSnapshotValue("LOCATION").get().getValue().getYaw();
+        return this.<Location>getSnapshotValue("LOCATION").orElseThrow().getValue().getYaw();
     }
 
     @Override
     public Entity<EntitySnapshot<? extends LiveEntity>> setYaw(double value) {
-        Location loc = this.<Location>getSnapshotValue("LOCATION").get().getValue();
+        Location loc = this.<Location>getSnapshotValue("LOCATION").orElseThrow().getValue();
         loc.setYaw((float) value);
         return this;
     }
 
     @Override
     public boolean hasGravity() {
-        return this.<Boolean>getSnapshotValue("GRAVITY").get().getValue();
+        return this.<Boolean>getSnapshotValue("GRAVITY").orElseThrow().getValue();
     }
 
     @Override
     public boolean isCustomNameVisible() {
-        return this.<Boolean>getSnapshotValue("CUSTOM_NAME_VISIBLE").get().getValue();
+        return this.<Boolean>getSnapshotValue("CUSTOM_NAME_VISIBLE").orElseThrow().getValue();
     }
 
     @Override
     public Entity<EntitySnapshot<? extends LiveEntity>> setCustomNameVisible(boolean visible) {
-        this.<Boolean>getSnapshotValue("CUSTOM_NAME_VISIBLE").get().setValue(visible);
+        this.<Boolean>getSnapshotValue("CUSTOM_NAME_VISIBLE").orElseThrow().setValue(visible);
         return this;
     }
 
     @Override
     public boolean isOnGround() {
-        return this.<Boolean>getSnapshotValue("IS_ON_GROUND").get().getValue();
+        return this.<Boolean>getSnapshotValue("IS_ON_GROUND").orElseThrow().getValue();
     }
 
     @Override
@@ -165,20 +165,19 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
     }
 
     @Override
-    public Entity<EntitySnapshot<? extends LiveEntity>> removePassengers(Collection<EntitySnapshot<?
-            extends LiveEntity>> entities) {
+    public Entity<EntitySnapshot<? extends LiveEntity>> removePassengers(Collection<EntitySnapshot<? extends LiveEntity>> entities) {
         return this;
     }
 
     @Override
     public Entity<EntitySnapshot<? extends LiveEntity>> setGravity(boolean check) {
-        this.<Boolean>getSnapshotValue("GRAVITY").get().setValue(check);
+        this.<Boolean>getSnapshotValue("GRAVITY").orElseThrow().setValue(check);
         return this;
     }
 
     @Override
-    public boolean setPosition(Position<? extends Number> position) {
-        EntitySnapshotValue<?, Location> locValue = this.<Location>getSnapshotValue("LOCATION").get();
+    public boolean setPosition(@NotNull Position<? extends Number> position) {
+        EntitySnapshotValue<?, Location> locValue = this.<Location>getSnapshotValue("LOCATION").orElseThrow();
         Location oldLoc = locValue.getValue();
         Location loc = new Location(((BWorldExtent) position.getWorld()).getBukkitWorld(),
                                     position.getX().doubleValue(), position.getY().doubleValue(),
@@ -199,7 +198,7 @@ public class BSnapshotValueEntity<BE extends org.bukkit.entity.Entity, E extends
 
     @Override
     public E spawnEntity() {
-        Location loc = this.<Location>getSnapshotValue("LOCATION").get().getValue();
+        Location loc = this.<Location>getSnapshotValue("LOCATION").orElseThrow().getValue();
         BE entity = (BE) loc.getWorld().spawnEntity(loc, ((BEntityType<?, ?>) this.type).getBukkitEntityType());
         if (this.persistentData != null) {
             try {

@@ -27,8 +27,8 @@ public class BDirectionalData implements DirectionalData {
     public Direction[] getSupportedDirections() {
         List<BlockFace> set = new ArrayList<>(this.data.getFaces());
         Direction[] directions = new Direction[set.size()];
-        for (int A = 0; A < set.size(); A++) {
-            directions[A] = DirectionUtils.toDirection(set.get(A));
+        for (int index = 0; index < set.size(); index++) {
+            directions[index] = DirectionUtils.toDirection(set.get(index));
         }
         return directions;
     }

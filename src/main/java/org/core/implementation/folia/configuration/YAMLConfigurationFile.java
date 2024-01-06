@@ -6,6 +6,7 @@ import org.core.config.ConfigurationFormat;
 import org.core.config.ConfigurationNode;
 import org.core.config.ConfigurationStream;
 import org.core.config.parser.Parser;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -29,11 +30,6 @@ public class YAMLConfigurationFile implements ConfigurationStream.ConfigurationF
 
     public YamlConfiguration getYaml() {
         return this.yaml;
-    }
-
-    @Override
-    public void set(ConfigurationNode node, Map<String, ?> value) {
-        this.yaml.set(String.join(".", node.getPath()), value);
     }
 
     @Override
@@ -93,9 +89,9 @@ public class YAMLConfigurationFile implements ConfigurationStream.ConfigurationF
     }
 
     @Override
-    public <T, C extends Collection<T>> C parseCollection(ConfigurationNode node,
-                                                          Parser<? super String, T> parser,
-                                                          C collection,
+    public <T, C extends Collection<T>> C parseCollection(@NotNull ConfigurationNode node,
+                                                          @NotNull Parser<? super String, T> parser,
+                                                          @NotNull C collection,
                                                           C defaultValue) {
         String path = String.join(".", node.getPath());
         if (!this.yaml.isList(path)) {
@@ -107,13 +103,6 @@ public class YAMLConfigurationFile implements ConfigurationStream.ConfigurationF
             parser.parse(value).ifPresent(collection::add);
         }
         return collection;
-    }
-
-    public void setObject(ConfigurationNode node, Object value) {
-        if (node.getPath().length == 0) {
-            throw new IllegalArgumentException("Node must have a path specified");
-        }
-        this.yaml.set(String.join(".", node.getPath()), value);
     }
 
     @Override
@@ -196,9 +185,25 @@ public class YAMLConfigurationFile implements ConfigurationStream.ConfigurationF
     public Map<Object, Object> getMap(ConfigurationNode node) {
         String path = String.join(".", node.getPath());
         @Nullable ConfigurationSection section = this.yaml.getConfigurationSection(path);
-        if(section == null){
+        if (section == null) {
             return Collections.emptyMap();
         }
-        return section.getValues(true).entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+        return section
+                .getValues(true)
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    @Override
+    public void set(ConfigurationNode node, Map<String, ?> value) {
+        this.yaml.set(String.join(".", node.getPath()), value);
+    }
+
+    public void setObject(ConfigurationNode node, Object value) {
+        if (node.getPath().length == 0) {
+            throw new IllegalArgumentException("Node must have a path specified");
+        }
+        this.yaml.set(String.join(".", node.getPath()), value);
     }
 }

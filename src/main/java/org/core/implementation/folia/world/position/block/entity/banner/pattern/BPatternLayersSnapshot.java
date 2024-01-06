@@ -33,8 +33,8 @@ public class BPatternLayersSnapshot implements PatternLayersSnapshot {
     }
 
     @Override
-    public PatternLayers addLayer(int A, PatternLayer layer) {
-        this.list.add(A, layer);
+    public PatternLayers addLayer(int layerIndex, PatternLayer layer) {
+        this.list.add(layerIndex, layer);
         return this;
     }
 

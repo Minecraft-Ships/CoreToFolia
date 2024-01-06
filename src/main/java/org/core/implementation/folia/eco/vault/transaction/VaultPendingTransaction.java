@@ -6,11 +6,9 @@ import org.core.eco.transaction.Transaction;
 import org.core.eco.transaction.pending.PendingSingleTransaction;
 import org.core.eco.transaction.result.TransactionResult;
 import org.core.eco.transaction.result.TransactionsResult;
-import org.core.eco.transaction.result.impl.TransactionResultImpl;
 import org.core.eco.transaction.result.impl.TransactionsResultImpl;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -41,10 +39,6 @@ public class VaultPendingTransaction implements PendingSingleTransaction {
         return this.account;
     }
 
-    private TransactionResult getResult() {
-        return new VaultTransactionResult(this.transaction, this.originalAmount, this.response);
-    }
-
     @Override
     public @NotNull TransactionsResult getCurrentResult() {
         return new TransactionsResultImpl(List.of(this.getResult()));
@@ -64,5 +58,9 @@ public class VaultPendingTransaction implements PendingSingleTransaction {
     @Override
     public boolean isComplete() {
         return true;
+    }
+
+    private TransactionResult getResult() {
+        return new VaultTransactionResult(this.transaction, this.originalAmount, this.response);
     }
 }

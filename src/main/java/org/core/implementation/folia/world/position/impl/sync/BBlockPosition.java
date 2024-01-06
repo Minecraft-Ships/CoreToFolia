@@ -23,8 +23,6 @@ import org.core.world.position.block.details.data.keyed.KeyedData;
 import org.core.world.position.block.entity.LiveTileEntity;
 import org.core.world.position.block.entity.TileEntity;
 import org.core.world.position.block.entity.TileEntitySnapshot;
-import org.core.world.position.block.entity.sign.SignTileEntity;
-import org.core.world.position.block.entity.sign.SignTileEntitySnapshot;
 import org.core.world.position.flags.PositionFlag;
 import org.core.world.position.flags.physics.ApplyPhysicsFlag;
 import org.core.world.position.flags.physics.ApplyPhysicsFlags;
@@ -32,9 +30,7 @@ import org.core.world.position.impl.Position;
 import org.core.world.position.impl.sync.SyncBlockPosition;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BBlockPosition extends BAbstractPosition<Integer> implements SyncBlockPosition {
@@ -104,21 +100,6 @@ public class BBlockPosition extends BAbstractPosition<Integer> implements SyncBl
         return this;
     }
 
-    private <T extends LiveTileEntity> void apply(TileState state, TileEntitySnapshot<T> tile, LivePlayer... players) {
-        BukkitPlatform platform = (BukkitPlatform) (TranslateCore.getPlatform());
-        Optional<LiveTileEntity> opCoreState = platform.createTileEntityInstance(state);
-        if (opCoreState.isEmpty()) {
-            return;
-        }
-        LiveTileEntity coreState = opCoreState.get();
-        tile.apply((T) coreState);
-        Stream
-                .of(players)
-                .map(lp -> ((BLiveEntity<Player>) lp))
-                .map(BLiveEntity::getBukkitEntity)
-                .forEach(p -> p.sendBlockUpdate(this.block.getLocation(), state));
-    }
-
     @Override
     public BBlockPosition resetBlock(LivePlayer... player) {
         return this.setBlock(this.getBlockDetails(), player);
@@ -139,6 +120,21 @@ public class BBlockPosition extends BAbstractPosition<Integer> implements SyncBl
     public BBlockPosition destroy() {
         this.block.breakNaturally();
         return this;
+    }
+
+    private <T extends LiveTileEntity> void apply(TileState state, TileEntitySnapshot<T> tile, LivePlayer... players) {
+        BukkitPlatform platform = (BukkitPlatform) (TranslateCore.getPlatform());
+        Optional<LiveTileEntity> opCoreState = platform.createTileEntityInstance(state);
+        if (opCoreState.isEmpty()) {
+            return;
+        }
+        LiveTileEntity coreState = opCoreState.get();
+        tile.apply((T) coreState);
+        Stream
+                .of(players)
+                .map(lp -> ((BLiveEntity<Player>) lp))
+                .map(BLiveEntity::getBukkitEntity)
+                .forEach(p -> p.sendBlockUpdate(this.block.getLocation(), state));
     }
 
     @Override
