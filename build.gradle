@@ -21,8 +21,10 @@ group = 'org.ships'
 version = '1.0-SNAPSHOT'
 description = 'CoreToFolia'
 
-java.sourceCompatibility = JavaVersion.VERSION_17
-java.sourceCompatibility = JavaVersion.VERSION_17
+java {
+    sourceCompatibility = JavaLanguageVersion.of(17);
+    targetCompatibility = JavaLanguageVersion.of(17);
+}
 
 compileJava.options.encoding = 'UTF-8'
 
