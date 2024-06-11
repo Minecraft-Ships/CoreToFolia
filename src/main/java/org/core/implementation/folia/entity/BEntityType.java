@@ -1,5 +1,6 @@
 package org.core.implementation.folia.entity;
 
+import org.core.TranslateCore;
 import org.core.entity.EntitySnapshot;
 import org.core.entity.EntityType;
 import org.core.entity.LiveEntity;
@@ -49,6 +50,8 @@ import org.core.implementation.folia.entity.scene.live.BLiveDroppedItem;
 import org.core.implementation.folia.entity.scene.live.BLiveItemFrame;
 import org.core.implementation.folia.entity.scene.snapshot.BDroppedItemSnapshot;
 import org.core.implementation.folia.entity.scene.snapshot.BItemFrameSnapshot;
+import org.core.implementation.folia.utils.CrossVersionHelper;
+import org.core.platform.plugin.details.CorePluginVersion;
 
 public interface BEntityType<E extends LiveEntity, S extends EntitySnapshot<E>> extends EntityType<E, S> {
 
@@ -170,7 +173,7 @@ public interface BEntityType<E extends LiveEntity, S extends EntitySnapshot<E>> 
 
         @Override
         public org.bukkit.entity.EntityType getBukkitEntityType() {
-            return org.bukkit.entity.EntityType.DROPPED_ITEM;
+            return CrossVersionHelper.enumOf(org.bukkit.entity.EntityType.class,() -> "ITEM", () -> "DROPPED_ITEM", 20, 6);
         }
 
         @Override

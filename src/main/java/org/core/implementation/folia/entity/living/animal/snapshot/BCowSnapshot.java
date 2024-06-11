@@ -2,6 +2,7 @@ package org.core.implementation.folia.entity.living.animal.snapshot;
 
 import org.bukkit.entity.Cow;
 import org.bukkit.entity.MushroomCow;
+import org.core.TranslateCore;
 import org.core.entity.EntitySnapshot;
 import org.core.entity.EntityType;
 import org.core.entity.EntityTypes;
@@ -9,6 +10,7 @@ import org.core.entity.living.animal.cow.CowSnapshot;
 import org.core.entity.living.animal.cow.LiveCow;
 import org.core.implementation.folia.entity.BEntitySnapshot;
 import org.core.implementation.folia.entity.living.animal.live.BLiveCow;
+import org.core.implementation.folia.utils.CrossVersionHelper;
 import org.core.implementation.folia.world.position.impl.BAbstractPosition;
 import org.core.world.position.impl.sync.SyncExactPosition;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +53,10 @@ public class BCowSnapshot extends BEntitySnapshot<LiveCow> implements CowSnapsho
         if (this.mooshroomVariant == null) {
             cow = (org.bukkit.entity.Cow) loc.getWorld().spawnEntity(loc, org.bukkit.entity.EntityType.COW);
         } else {
-            cow = (org.bukkit.entity.Cow) loc.getWorld().spawnEntity(loc, org.bukkit.entity.EntityType.MUSHROOM_COW);
+            cow = (org.bukkit.entity.Cow) loc
+                    .getWorld()
+                    .spawnEntity(loc, CrossVersionHelper.enumOf(org.bukkit.entity.EntityType.class, () -> "MOOSHROOM",
+                                                                () -> "MUSHROOM_COW", 20, 5));
         }
         BLiveCow coreCow = new BLiveCow(cow);
         this.applyDefaults(coreCow);
