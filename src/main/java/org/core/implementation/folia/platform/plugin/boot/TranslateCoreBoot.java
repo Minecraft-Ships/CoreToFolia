@@ -9,11 +9,13 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.core.TranslateCore;
 import org.core.command.CommandRegister;
+import org.core.command.argument.ArgumentCommand;
 import org.core.command.commands.TranslateCoreCommands;
 import org.core.command.commands.timings.TimingsCommand;
 import org.core.implementation.folia.CoreToFolia;
 import org.core.implementation.folia.command.BCommand;
 import org.core.implementation.folia.command.BCommandWrapper;
+import org.core.implementation.folia.command.commands.TasksCommand;
 import org.core.implementation.folia.logger.BJavaLogger;
 import org.core.implementation.folia.logger.BSLF4JLogger;
 import org.core.implementation.folia.platform.plugin.loader.CoreBukkitPluginWrapper;
@@ -36,8 +38,15 @@ public class TranslateCoreBoot extends JavaPlugin {
     private final Collection<CorePlugin> plugins = new TreeSet<>();
     private final CoreToFolia core;
 
+    private static TranslateCoreBoot plugin;
+
     public TranslateCoreBoot() {
+        plugin = this;
         this.core = new CoreToFolia();
+    }
+
+    public static TranslateCoreBoot getBoot() {
+        return plugin;
     }
 
     private CommandMap getLegacyCommandMap(PluginManager manager) throws NoSuchFieldException, IllegalAccessException {
@@ -67,8 +76,12 @@ public class TranslateCoreBoot extends JavaPlugin {
             PluginManager pluginManager = Bukkit.getPluginManager();
             try {
                 CommandMap map = this.getCommandMap(pluginManager);
+                ArgumentCommand[] translateCoreCommands = new ArgumentCommand[]{new TimingsCommand()};
+                if (this.core.getRawPlatform().areDeveloperCommandsEnabled()) {
+                    translateCoreCommands = new ArgumentCommand[]{new TimingsCommand(), new TasksCommand()};
+                }
                 map.register("TranslateCore",
-                             new BCommandWrapper(new BCommand(new TranslateCoreCommands(new TimingsCommand()))));
+                             new BCommandWrapper(new BCommand(new TranslateCoreCommands(translateCoreCommands))));
 
 
                 CommandRegister cmdReg = new CommandRegister();

@@ -95,7 +95,7 @@ public class BukkitPlatform implements Platform {
     protected final Set<BlockType> blockTypes = new HashSet<>();
     protected final Set<ItemType> itemTypes = new HashSet<>();
     private final BukkitStructurePlatform structurePlatform = new BukkitStructurePlatform();
-    ;
+    private boolean enableDeveloperCommands;
     private final Collection<PlatformUpdate<?>> updateServices = new HashSet<>();
 
     public void init() {
@@ -248,6 +248,16 @@ public class BukkitPlatform implements Platform {
                 .findAny()
                 .orElseThrow(
                         () -> new RuntimeException("Unknown material with id of '" + id + "' is your plugin too new?"));
+    }
+
+    @Override
+    public boolean areDeveloperCommandsEnabled() {
+        return this.enableDeveloperCommands;
+    }
+
+    @Override
+    public void setDeveloperCommandsEnabled(boolean enabled) {
+        this.enableDeveloperCommands = enabled;
     }
 
     @Override
