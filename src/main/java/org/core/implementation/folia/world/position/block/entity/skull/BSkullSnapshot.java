@@ -2,17 +2,15 @@ package org.core.implementation.folia.world.position.block.entity.skull;
 
 import org.core.entity.living.human.player.User;
 import org.core.world.position.block.BlockType;
+import org.core.world.position.block.BlockTypes;
 import org.core.world.position.block.entity.TileEntity;
 import org.core.world.position.block.entity.TileEntitySnapshot;
 import org.core.world.position.block.entity.skull.LiveSkull;
 import org.core.world.position.block.entity.skull.Skull;
 import org.core.world.position.block.entity.skull.SkullSnapshot;
-import org.core.world.position.block.grouptype.versions.BlockGroups1V13;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class BSkullSnapshot implements SkullSnapshot {
 
@@ -40,11 +38,8 @@ public class BSkullSnapshot implements SkullSnapshot {
     }
 
     @Override
-    public Collection<BlockType> getSupportedBlocks() {
-        Collection<BlockType> blocks = new HashSet<>();
-        blocks.addAll(Arrays.asList(BlockGroups1V13.STANDARD_HEAD.getGrouped()));
-        blocks.addAll(Arrays.asList(BlockGroups1V13.WALL_HEAD.getGrouped()));
-        return blocks;
+    public Stream<BlockType> getApplicableBlocks() {
+        return Stream.of(BlockTypes.PLAYER_HEAD, BlockTypes.PLAYER_WALL_HEAD);
     }
 
     @Override

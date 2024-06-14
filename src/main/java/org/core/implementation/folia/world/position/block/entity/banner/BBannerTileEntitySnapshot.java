@@ -9,6 +9,7 @@ import org.core.world.position.block.entity.banner.LiveBannerTileEntity;
 import org.core.world.position.block.entity.banner.pattern.PatternLayersSnapshot;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 public class BBannerTileEntitySnapshot implements BannerTileEntitySnapshot {
 
@@ -29,8 +30,8 @@ public class BBannerTileEntitySnapshot implements BannerTileEntitySnapshot {
     }
 
     @Override
-    public Collection<BlockType> getSupportedBlocks() {
-        return BlockTypes1V13.BLACK_BANNER.getLike();
+    public Stream<BlockType> getApplicableBlocks() {
+        return BlockTypes1V13.BLACK_BANNER.getAlike();
     }
 
     @Override

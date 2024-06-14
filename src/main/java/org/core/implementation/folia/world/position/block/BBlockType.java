@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BBlockType implements BlockType {
 
@@ -46,13 +47,11 @@ public class BBlockType implements BlockType {
     }
 
     @Override
-    public Set<BlockGroup> getGroups() {
+    public Stream<BlockGroup> getBlockGroups() {
         return TranslateCore
                 .getPlatform()
-                .getBlockGroups()
-                .stream()
-                .filter(b -> Arrays.asList(b.getGrouped()).contains(BBlockType.this))
-                .collect(Collectors.toSet());
+                .getAllBlockGroups()
+                .filter(b -> b.getBlocks().anyMatch(type -> type.equals(BBlockType.this)));
     }
 
     @Override

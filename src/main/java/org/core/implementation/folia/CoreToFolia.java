@@ -17,12 +17,10 @@ import org.core.implementation.folia.platform.BServer;
 import org.core.implementation.folia.platform.BukkitPlatform;
 import org.core.implementation.folia.platform.PlatformConsole;
 import org.core.implementation.folia.scheduler.BScheduleManager;
-import org.core.implementation.folia.world.boss.BServerBossBar;
 import org.core.platform.Platform;
 import org.core.platform.PlatformServer;
 import org.core.schedule.ScheduleManager;
 import org.core.source.command.ConsoleSource;
-import org.core.world.boss.ServerBossBar;
 
 public class CoreToFolia extends TranslateCore.CoreImplementation {
 
@@ -72,18 +70,6 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
     @Override
     public PlatformServer getRawServer() {
         return this.server;
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public ServerBossBar bossBuilder() {
-        return bossBuilder(BossBar.bossBar(Component.empty(), 0, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS));
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public ServerBossBar bossBuilder(BossBar bar) {
-        return new BServerBossBar(bar);
     }
 
     @Override

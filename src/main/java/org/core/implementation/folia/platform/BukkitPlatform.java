@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.boss.BarColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Parrot;
@@ -33,7 +32,6 @@ import org.core.implementation.folia.platform.details.BukkitTranslatePlatformDet
 import org.core.implementation.folia.platform.plugin.BPlugin;
 import org.core.implementation.folia.platform.structure.BukkitStructurePlatform;
 import org.core.implementation.folia.platform.version.BukkitSpecificPlatform;
-import org.core.implementation.folia.world.boss.colour.BBossColour;
 import org.core.implementation.folia.world.position.block.BBlockType;
 import org.core.implementation.folia.world.position.block.details.blocks.grouptype.BBlockGroup;
 import org.core.implementation.folia.world.position.block.entity.unknown.BLiveUnknownContainerTileEntity;
@@ -55,8 +53,6 @@ import org.core.source.command.CommandSource;
 import org.core.source.projectile.ProjectileSource;
 import org.core.utils.Identifiable;
 import org.core.utils.Singleton;
-import org.core.world.boss.colour.BossColour;
-import org.core.world.boss.colour.BossColours;
 import org.core.world.position.Positionable;
 import org.core.world.position.block.BlockType;
 import org.core.world.position.block.entity.LiveTileEntity;
@@ -65,7 +61,6 @@ import org.core.world.position.block.entity.TileEntitySnapshot;
 import org.core.world.position.block.entity.banner.pattern.PatternLayerType;
 import org.core.world.position.block.entity.banner.pattern.PatternLayerTypes;
 import org.core.world.position.block.grouptype.BlockGroup;
-import org.core.world.position.block.grouptype.BlockGroups;
 import org.core.world.position.flags.physics.ApplyPhysicsFlag;
 import org.core.world.position.flags.physics.ApplyPhysicsFlags;
 import org.core.world.position.impl.sync.SyncBlockPosition;
@@ -82,6 +77,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class BukkitPlatform implements Platform {
 
@@ -89,28 +85,13 @@ public class BukkitPlatform implements Platform {
     protected final Map<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>> entityToEntity = new HashMap<>();
     protected final Map<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>> blockStateToTileEntity = new HashMap<>();
     protected final Set<TileEntitySnapshot<? extends TileEntity>> defaultTileEntities = new HashSet<>();
-    protected final Set<BlockGroup> blockGroups = new HashSet<>();
     @Deprecated
     protected final Set<UnspecificParser<?>> parsers = new HashSet<>();
-    protected final Set<BlockType> blockTypes = new HashSet<>();
-    protected final Set<ItemType> itemTypes = new HashSet<>();
     private final BukkitStructurePlatform structurePlatform = new BukkitStructurePlatform();
     private boolean enableDeveloperCommands;
     private final Collection<PlatformUpdate<?>> updateServices = new HashSet<>();
 
     public void init() {
-        for (Material material : Material.values()) {
-            if (material.isLegacy()) {
-                continue;
-            }
-            if (material.isBlock()) {
-                BlockType type = new BBlockType(material);
-                this.blockTypes.add(type);
-            }
-            if (material.isItem()) {
-                this.itemTypes.add(new BItemType(material));
-            }
-        }
         BukkitSpecificPlatform.getPlatforms().forEach(bsp -> {
             this.entityToEntity.putAll(bsp.getGeneralEntityToEntity());
             this.entityTypes.addAll(bsp.getGeneralEntityTypes());
@@ -121,17 +102,6 @@ public class BukkitPlatform implements Platform {
             this.entityTypes.addAll(bsp.getSpecificEntityTypes());
             this.blockStateToTileEntity.putAll(bsp.getSpecificStateToTile());
         });
-
-        Bukkit.getTags(Tag.REGISTRY_BLOCKS, Material.class).forEach(tag -> {
-            String value = tag.getKey().toString().substring(tag.getKey().getNamespace().length() + 1);
-            this.blockGroups.add(new BBlockGroup(value, tag
-                    .getValues()
-                    .stream()
-                    .map(BBlockType::new)
-                    .distinct()
-                    .toArray(BlockType[]::new)));
-        });
-        this.blockGroups.addAll(BlockGroups.values());
 
         this.updateServices.add(new DevBukkitUpdateChecker());
 
@@ -271,16 +241,6 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Singleton<BossColour> get(BossColours colours) {
-        return new Singleton<>(() -> Stream
-                .of(BarColor.values())
-                .filter(c -> c.name().equalsIgnoreCase(colours.getName()))
-                .findAny()
-                .map(BBossColour::new)
-                .orElseThrow(() -> new RuntimeException("Could not find bar colour of " + colours.getName())));
-    }
-
-    @Override
     public @NotNull Singleton<ApplyPhysicsFlag> get(ApplyPhysicsFlags flags) {
         if (flags.getName().equals("None")) {
             return new Singleton<>(() -> BApplyPhysicsFlag.NONE);
@@ -353,13 +313,13 @@ public class BukkitPlatform implements Platform {
 
     @Override
     public @NotNull Optional<BlockType> getBlockType(String id) {
-        return this.blockTypes.stream().filter(bt -> bt.getId().equals(id)).findAny();
+        return this.getAllBlockTypes().filter(bt -> bt.getId().equals(id)).findAny();
 
     }
 
     @Override
     public @NotNull Optional<ItemType> getItemType(String id) {
-        return this.itemTypes.stream().filter(it -> it.getId().equals(id)).findAny();
+        return this.getAllItemTypes().filter(it -> it.getId().equals(id)).findAny();
     }
 
     @Override
@@ -375,11 +335,6 @@ public class BukkitPlatform implements Platform {
 
     @Override
     public @NotNull Optional<PatternLayerType> getPatternLayerType(String id) {
-        return Optional.empty();
-    }
-
-    @Override
-    public @NotNull Optional<BossColour> getBossColour(String id) {
         return Optional.empty();
     }
 
@@ -406,18 +361,26 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Collection<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> getEntityTypes() {
-        return new HashSet<>(this.entityTypes);
+    public @NotNull Stream<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> getAllEntityTypes() {
+        return this.entityTypes.stream();
     }
 
     @Override
-    public @NotNull Collection<BlockType> getBlockTypes() {
-        return Collections.unmodifiableCollection(this.blockTypes);
+    public @NotNull Stream<BlockType> getAllBlockTypes() {
+        return Stream
+                .of(Material.values())
+                .filter(material -> !material.isLegacy())
+                .filter(Material::isBlock)
+                .map(BBlockType::new);
     }
 
     @Override
-    public @NotNull Collection<ItemType> getItemTypes() {
-        return Collections.unmodifiableCollection(this.itemTypes);
+    public @NotNull Stream<ItemType> getAllItemTypes() {
+        return Stream
+                .of(Material.values())
+                .filter(material -> !material.isLegacy())
+                .filter(Material::isItem)
+                .map(BItemType::new);
 
     }
 
@@ -436,13 +399,18 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Collection<BlockGroup> getBlockGroups() {
-        return this.blockGroups;
-    }
-
-    @Override
-    public @NotNull Collection<BossColour> getBossColours() {
-        return Stream.of(BarColor.values()).map(BBossColour::new).collect(Collectors.toSet());
+    public @NotNull Stream<BlockGroup> getAllBlockGroups() {
+        return StreamSupport
+                .stream(Bukkit.getTags(Tag.REGISTRY_BLOCKS, Material.class).spliterator(), false)
+                .map(tag -> {
+                    String value = tag.getKey().toString().substring(tag.getKey().getNamespace().length() + 1);
+                    return new BBlockGroup(value, tag
+                            .getValues()
+                            .stream()
+                            .map(BBlockType::new)
+                            .distinct()
+                            .toArray(BlockType[]::new));
+                });
     }
 
     @Override
@@ -459,14 +427,13 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Collection<Permission> getPermissions() {
+    public @NotNull Stream<Permission> getAllPermissions() {
         return Bukkit
                 .getServer()
                 .getPluginManager()
                 .getPermissions()
                 .parallelStream()
-                .map(p -> new BukkitPermission(p.getName()))
-                .collect(Collectors.toList());
+                .map(p -> new BukkitPermission(p.getName()));
     }
 
     @Override
@@ -565,8 +532,8 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Set<Plugin> getPlugins() {
-        return Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(BPlugin::new).collect(Collectors.toSet());
+    public @NotNull Stream<Plugin> getAllPlugins() {
+        return Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(BPlugin::new);
     }
 
     @Override

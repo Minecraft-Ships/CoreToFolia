@@ -9,7 +9,6 @@ import net.kyori.adventure.text.ComponentLike;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.core.adventureText.AText;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
 import org.core.implementation.folia.entity.BLiveEntity;
@@ -147,20 +146,6 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, Forw
     @Override
     public BLivePlayer setGravity(boolean check) {
         this.getBukkitEntity().setGravity(check);
-        return this;
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public LivePlayer sendMessage(AText message, UUID uuid) {
-        this.getBukkitEntity().sendMessage(uuid, message.toLegacy());
-        return this;
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public LivePlayer sendMessage(AText message) {
-        this.sendMessage((ComponentLike) message);
         return this;
     }
 

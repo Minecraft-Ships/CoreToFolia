@@ -16,6 +16,8 @@ import org.core.world.position.impl.async.ASyncExactPosition;
 import org.core.world.position.impl.sync.SyncBlockPosition;
 import org.core.world.position.impl.sync.SyncExactPosition;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,19 +56,20 @@ public class BChunkExtent implements ChunkExtent {
     }
 
     @Override
-    public Set<LiveEntity> getEntities() {
-        return Stream.of(this.chunk.getEntities())
-                .map(entity -> ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(entity))
-                .collect(Collectors.toSet());
+    public Stream<LiveEntity> getLiveEntities() {
+        return Arrays
+                .stream(this.chunk.getEntities())
+                .map(entity -> ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(entity));
     }
 
     @Override
-    public Set<LiveTileEntity> getTileEntities() {
-        return Stream.of(this.chunk.getTileEntities())
+    public Stream<LiveTileEntity> getLiveTileEntities() {
+        return Arrays
+                .stream(this.chunk.getTileEntities())
                 .map(entity -> ((BukkitPlatform) TranslateCore.getPlatform())
                         .createTileEntityInstance(entity)
                         .orElse(null))
-                .collect(Collectors.toSet());
+                .filter(Objects::nonNull);
     }
 
     @Override

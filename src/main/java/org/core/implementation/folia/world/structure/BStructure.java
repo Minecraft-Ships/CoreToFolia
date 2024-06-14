@@ -27,6 +27,7 @@ import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BStructure implements Structure {
 
@@ -64,7 +65,7 @@ public class BStructure implements Structure {
     }
 
     @Override
-    public Set<BlockSetDetails> getBlocks() {
+    public Stream<BlockSetDetails> getBlockDetails() {
         return this
                 .structure
                 .getPalettes()
@@ -77,8 +78,7 @@ public class BStructure implements Structure {
                                         .createTileEntityInstance(state)
                                         .map(TileEntity::getSnapshot)
                                         .orElse(null)))
-                        .collect(Collectors.toCollection(BlockSetDetails::new)))
-                .collect(Collectors.toSet());
+                        .collect(Collectors.toCollection(BlockSetDetails::new)));
     }
 
     @Override

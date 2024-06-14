@@ -16,6 +16,7 @@ import org.core.inventory.parts.Slot;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> implements LiveZombieInventory<Z> {
 
@@ -23,16 +24,15 @@ public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> imp
     private final ZombieArmorSlots armor = new ZombieArmorSlots();
     private final ZombieSecondHand second = new ZombieSecondHand();
     private final ZombieMainHand main = new ZombieMainHand();
+
     public BLiveZombieInventory(Z zombie) {
         this.zombie = zombie;
     }
 
     @Override
-    public Set<Slot> getSlots() {
-        Set<Slot> set = new HashSet<>(this.armor.getSlots());
-        set.add(this.main);
-        set.add(this.second);
-        return set;
+    public Stream<Slot> getItemSlots() {
+        Stream<Slot> stream = this.armor.getItemSlots();
+        return Stream.concat(stream, Stream.of(this.main, this.second));
     }
 
     @Override
@@ -101,11 +101,8 @@ public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> imp
 
             @Override
             public Optional<ItemStack> getItem() {
-                return
-                        BLiveZombieInventory
-                                .this
-                                .getEquipment()
-                                .map(e -> new BLiveItemStack(e.getHelmet()));
+                return BLiveZombieInventory
+                        .this.getEquipment().map(e -> new BLiveItemStack(e.getHelmet()));
             }
 
             @Override
@@ -126,11 +123,8 @@ public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> imp
 
             @Override
             public Optional<ItemStack> getItem() {
-                return
-                        BLiveZombieInventory
-                                .this
-                                .getEquipment()
-                                .map(e -> new BLiveItemStack(e.getChestplate()));
+                return BLiveZombieInventory
+                        .this.getEquipment().map(e -> new BLiveItemStack(e.getChestplate()));
             }
 
             @Override
@@ -151,11 +145,8 @@ public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> imp
 
             @Override
             public Optional<ItemStack> getItem() {
-                return
-                        BLiveZombieInventory
-                                .this
-                                .getEquipment()
-                                .map(e -> new BLiveItemStack(e.getLeggings()));
+                return BLiveZombieInventory
+                        .this.getEquipment().map(e -> new BLiveItemStack(e.getLeggings()));
             }
 
             @Override
@@ -176,11 +167,8 @@ public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> imp
 
             @Override
             public Optional<ItemStack> getItem() {
-                return
-                        BLiveZombieInventory
-                                .this
-                                .getEquipment()
-                                .map(e -> new BLiveItemStack(e.getBoots()));
+                return BLiveZombieInventory
+                        .this.getEquipment().map(e -> new BLiveItemStack(e.getBoots()));
             }
 
             @Override
@@ -202,11 +190,8 @@ public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> imp
 
         @Override
         public Optional<ItemStack> getItem() {
-            return
-                    BLiveZombieInventory
-                            .this
-                            .getEquipment()
-                            .map(e -> new BLiveItemStack(e.getItemInMainHand()));
+            return BLiveZombieInventory
+                    .this.getEquipment().map(e -> new BLiveItemStack(e.getItemInMainHand()));
         }
 
         @Override
@@ -227,11 +212,8 @@ public class BLiveZombieInventory<Z extends Zombie<LiveEntity> & LiveEntity> imp
 
         @Override
         public Optional<ItemStack> getItem() {
-            return
-                    BLiveZombieInventory
-                            .this
-                            .getEquipment()
-                            .map(e -> new BLiveItemStack(e.getItemInOffHand()));
+            return BLiveZombieInventory
+                    .this.getEquipment().map(e -> new BLiveItemStack(e.getItemInOffHand()));
         }
 
         @Override

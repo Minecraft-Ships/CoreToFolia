@@ -12,6 +12,7 @@ import org.core.world.position.impl.sync.SyncBlockPosition;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public abstract class BLiveDispenserBasedInventory implements LiveDispenserBasedInventory {
 
@@ -40,17 +41,12 @@ public abstract class BLiveDispenserBasedInventory implements LiveDispenserBased
     }
 
     @Override
-    public Set<Slot> getSlots() {
-        return this.getItems().getSlots();
+    public Stream<Slot> getItemSlots() {
+        return this.getItems().getItemSlots();
     }
 
     @Override
     public Optional<Slot> getSlot(int slotPos) {
-        return this
-                .getSlots()
-                .stream()
-                .filter(s -> s.getPosition().isPresent())
-                .filter(s -> s.getPosition().get() == slotPos)
-                .findAny();
+        return this.getItems().getSlot(slotPos);
     }
 }

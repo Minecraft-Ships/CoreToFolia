@@ -1,5 +1,6 @@
 package org.core.implementation.folia.inventory.inventories.live.block;
 
+import org.bukkit.inventory.Inventory;
 import org.core.implementation.folia.inventory.inventories.snapshot.block.BChestInventorySnapshot;
 import org.core.implementation.folia.inventory.item.stack.BAbstractItemStack;
 import org.core.implementation.folia.inventory.item.stack.BLiveItemStack;
@@ -10,9 +11,9 @@ import org.core.inventory.item.stack.ItemStack;
 import org.core.inventory.parts.Slot;
 import org.core.world.position.impl.sync.SyncBlockPosition;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class BLiveChestInventory implements LiveChestInventory {
 
@@ -53,13 +54,9 @@ public class BLiveChestInventory implements LiveChestInventory {
     }
 
     protected final org.bukkit.block.Chest chest;
-    protected final Set<Slot> slots = new HashSet<>();
 
     public BLiveChestInventory(org.bukkit.block.Chest chest) {
         this.chest = chest;
-        for (int index = 0; index < this.chest.getSnapshotInventory().getSize(); index++) {
-            this.slots.add(new BLiveChestInventory.ChestSlot(index));
-        }
     }
 
     @Override
@@ -68,17 +65,18 @@ public class BLiveChestInventory implements LiveChestInventory {
     }
 
     @Override
-    public Set<Slot> getSlots() {
-        return this.slots;
+    public Stream<Slot> getItemSlots() {
+        Inventory inventory = this.chest.getSnapshotInventory();
+        return IntStream.range(0, inventory.getSize()).mapToObj(ChestSlot::new);
     }
 
     @Override
     public Optional<Slot> getSlot(int slotPos) {
-        return this.slots
-                .stream()
-                .filter(s -> s.getPosition().isPresent())
-                .filter(s -> s.getPosition().get() == slotPos)
-                .findAny();
+        Inventory inventory = this.chest.getSnapshotInventory();
+        if (inventory.getSize() >= slotPos) {
+            return Optional.empty();
+        }
+        return Optional.of(new ChestSlot(slotPos));
     }
 
     @Override

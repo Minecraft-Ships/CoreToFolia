@@ -6,6 +6,7 @@ import org.core.world.position.impl.sync.SyncBlockPosition;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 public class EntityExplosion implements Explosion.EntityExplosion {
 
@@ -18,8 +19,8 @@ public class EntityExplosion implements Explosion.EntityExplosion {
     }
 
     @Override
-    public Collection<SyncBlockPosition> getAffectedPositions() {
-        return Collections.unmodifiableCollection(this.affected);
+    public Stream<SyncBlockPosition> getAffectedBlockPositions() {
+        return this.affected.stream();
     }
 
     @Override

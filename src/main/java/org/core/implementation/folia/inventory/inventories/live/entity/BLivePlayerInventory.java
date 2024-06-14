@@ -15,19 +15,16 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class BLivePlayerInventory implements LivePlayerInventory {
 
     private class PlayerCraftingSlots implements Grid2x2 {
 
-        final BLivePlayerInventory.PlayerItemSlot slot1 = new BLivePlayerInventory.PlayerItemSlot(80);
-        final BLivePlayerInventory.PlayerItemSlot slot2 = new BLivePlayerInventory.PlayerItemSlot(81);
-        final BLivePlayerInventory.PlayerItemSlot slot3 = new BLivePlayerInventory.PlayerItemSlot(82);
-        final BLivePlayerInventory.PlayerItemSlot slot4 = new BLivePlayerInventory.PlayerItemSlot(83);
-
         @Override
-        public Set<Slot> getSlots() {
-            return new HashSet<>(Arrays.asList(this.slot1, this.slot2, this.slot3, this.slot4));
+        public Stream<Slot> getItemSlots() {
+            return IntStream.range(80, 83).mapToObj(PlayerItemSlot::new);
         }
     }
 
@@ -61,29 +58,13 @@ public class BLivePlayerInventory implements LivePlayerInventory {
 
     private final class PlayerMainInventory implements MainPlayerInventory {
 
-        final Set<Slot> slots = new HashSet<>();
-
-        private PlayerMainInventory() {
-            for (int index = 9; index < 35; index++) {
-                this.slots.add(new BLivePlayerInventory.PlayerItemSlot(index));
-            }
-        }
-
         @Override
-        public Set<Slot> getSlots() {
-            return this.slots;
+        public Stream<Slot> getItemSlots() {
+            return IntStream.range(9, 35).mapToObj(PlayerItemSlot::new);
         }
     }
 
     private final class PlayerHotbar implements Hotbar {
-
-        final Set<Slot> slots = new HashSet<>();
-
-        private PlayerHotbar() {
-            for (int index = 0; index < 9; index++) {
-                this.slots.add(new BLivePlayerInventory.PlayerItemSlot(index));
-            }
-        }
 
         @Override
         public int getSelectedSlotPos() {
@@ -91,8 +72,8 @@ public class BLivePlayerInventory implements LivePlayerInventory {
         }
 
         @Override
-        public Set<Slot> getSlots() {
-            return this.slots;
+        public Stream<Slot> getItemSlots() {
+            return IntStream.range(0, 9).mapToObj(PlayerItemSlot::new);
         }
     }
 

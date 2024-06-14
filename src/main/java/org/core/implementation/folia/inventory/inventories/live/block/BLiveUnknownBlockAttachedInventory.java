@@ -1,5 +1,6 @@
 package org.core.implementation.folia.inventory.inventories.live.block;
 
+import org.bukkit.inventory.Inventory;
 import org.core.implementation.folia.inventory.inventories.snapshot.block.BUnknownBlockAttachedInventorySnapshot;
 import org.core.implementation.folia.inventory.item.stack.BAbstractItemStack;
 import org.core.implementation.folia.inventory.item.stack.BLiveItemStack;
@@ -15,6 +16,8 @@ import org.core.world.position.impl.sync.SyncBlockPosition;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class BLiveUnknownBlockAttachedInventory implements LiveUnknownBlockAttachedInventory {
 
@@ -54,27 +57,24 @@ public class BLiveUnknownBlockAttachedInventory implements LiveUnknownBlockAttac
     }
 
     protected final org.bukkit.block.Container state;
-    protected final Set<Slot> slots = new HashSet<>();
 
     public BLiveUnknownBlockAttachedInventory(org.bukkit.block.Container state) {
         this.state = state;
-        for (int index = 0; index < state.getInventory().getSize(); index++) {
-            this.slots.add(new UnknownSlot(index));
-        }
     }
 
     @Override
-    public Set<Slot> getSlots() {
-        return new HashSet<>(this.slots);
+    public Stream<Slot> getItemSlots() {
+        Inventory inventory = state.getSnapshotInventory();
+        return IntStream.range(0, inventory.getSize()).mapToObj(UnknownSlot::new);
     }
 
     @Override
     public Optional<Slot> getSlot(int slotPos) {
-        return this.slots
-                .stream()
-                .filter(s -> s.getPosition().isPresent())
-                .filter(s -> s.getPosition().get() == slotPos)
-                .findAny();
+        Inventory inventory = state.getSnapshotInventory();
+        if(inventory.getSize() >= slotPos){
+            return Optional.empty();
+        }
+        return Optional.of(new UnknownSlot(slotPos));
     }
 
     @Override

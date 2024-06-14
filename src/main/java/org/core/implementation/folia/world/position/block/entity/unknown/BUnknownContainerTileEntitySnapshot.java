@@ -11,6 +11,7 @@ import org.core.world.position.impl.sync.SyncBlockPosition;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 public class BUnknownContainerTileEntitySnapshot implements UnknownContainerTileEntitySnapshot {
 
@@ -31,8 +32,8 @@ public class BUnknownContainerTileEntitySnapshot implements UnknownContainerTile
     }
 
     @Override
-    public Collection<BlockType> getSupportedBlocks() {
-        return Arrays.asList(this.inventory.getAllowedBlockType());
+    public Stream<BlockType> getApplicableBlocks() {
+        return Stream.of(this.inventory.getAllowedBlockType());
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.core.world.position.block.entity.container.dropper.LiveDropperTileEnt
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 public class BDropperTileEntitySnapshot implements DropperTileEntitySnapshot {
 
@@ -31,8 +32,8 @@ public class BDropperTileEntitySnapshot implements DropperTileEntitySnapshot {
     }
 
     @Override
-    public Collection<BlockType> getSupportedBlocks() {
-        return Collections.singletonList(BlockTypes.DROPPER);
+    public Stream<BlockType> getApplicableBlocks() {
+        return Stream.of(BlockTypes.DROPPER);
     }
 
     @Override
