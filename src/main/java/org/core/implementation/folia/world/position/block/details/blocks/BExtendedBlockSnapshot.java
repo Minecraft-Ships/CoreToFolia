@@ -53,6 +53,6 @@ public class BExtendedBlockSnapshot extends BBlockDetails implements BlockSnapsh
 
     @Override
     public AsyncBlockSnapshot asAsynced() {
-        return new AsyncBlockStateSnapshot(this, Position.toASync(this.getPosition()));
+        return new AsyncBlockStateSnapshot(this, this.getPosition().toAsyncPosition());
     }
 }

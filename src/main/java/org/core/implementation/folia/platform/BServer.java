@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 public class BServer implements PlatformServer {
 
     @Override
-    public @NotNull Stream<WorldExtent> getWorldExtent() {
+    public @NotNull Stream<WorldExtent> getWorldExtents() {
         return Bukkit.getWorlds().stream().map(BWorldExtent::new);
     }
 
@@ -70,14 +70,14 @@ public class BServer implements PlatformServer {
                 .setRunner((sch) -> {
                     withTileEntities.forEach(bs -> bs.get(TileEntityKeyedData.class).ifPresent(tileEntity -> {
                         try {
-                            tileEntity.apply(Position.toSync(bs.getPosition()));
+                            tileEntity.apply(bs.getPosition().toSyncPosition());
                         } catch (BlockNotSupported e) {
                             throw new RuntimeException(e);
                         }
                     }));
                     onComplete.run();
                 })
-                .build(plugin);
+                .buildDelayed(plugin);
 
         Scheduler asyncedSchedule = TranslateCore
                 .getScheduleManager()
@@ -104,7 +104,7 @@ public class BServer implements PlatformServer {
                     syncedSchedule.run();
                 })
                 .setAsync(true)
-                .build(plugin);
+                .buildDelayed(plugin);
         asyncedSchedule.run();
 
     }

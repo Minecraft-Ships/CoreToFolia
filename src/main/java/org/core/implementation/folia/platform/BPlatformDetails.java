@@ -1,6 +1,7 @@
 package org.core.implementation.folia.platform;
 
 import org.bukkit.Bukkit;
+import org.core.implementation.folia.platform.plugin.boot.TranslateCoreBoot;
 import org.core.platform.PlatformDetails;
 import org.core.platform.plugin.details.CorePluginVersion;
 import org.jetbrains.annotations.NotNull;
@@ -19,9 +20,11 @@ public class BPlatformDetails implements PlatformDetails {
             String[] versionSplit = versionString.split(Pattern.quote("."));
             this.version = Integer.parseInt(versionSplit[1]);
         } catch (Throwable e) {
-            System.err.println(
-                    "Unknown version number for implementation: Report this on dev.bukkit asking for support for "
-                            + Bukkit.getVersion());
+            TranslateCoreBoot
+                    .getBoot()
+                    .getSLF4JLogger()
+                    .error("Unknown version number for implementation: Report this on dev.bukkit asking for support for {}",
+                           Bukkit.getVersion());
         }
     }
 

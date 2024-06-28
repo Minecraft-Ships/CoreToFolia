@@ -6,6 +6,8 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,6 +37,7 @@ import org.core.implementation.folia.event.events.connection.BJoinedEvent;
 import org.core.implementation.folia.event.events.connection.BKickEvent;
 import org.core.implementation.folia.event.events.entity.*;
 import org.core.implementation.folia.platform.BukkitPlatform;
+import org.core.implementation.folia.platform.plugin.boot.TranslateCoreBoot;
 import org.core.implementation.folia.utils.DirectionUtils;
 import org.core.implementation.folia.world.expload.EntityExplosion;
 import org.core.implementation.folia.world.expload.EntityExplosionSnapshot;
@@ -44,13 +47,11 @@ import org.core.implementation.folia.world.position.block.entity.sign.BSignEntit
 import org.core.implementation.folia.world.position.block.entity.sign.FSignSideSnapshot;
 import org.core.implementation.folia.world.position.impl.sync.BBlockPosition;
 import org.core.implementation.folia.world.position.impl.sync.BExactPosition;
-import org.core.utils.Else;
 import org.core.world.position.block.details.BlockDetails;
 import org.core.world.position.block.details.BlockSnapshot;
 import org.core.world.position.impl.sync.SyncBlockPosition;
 import org.core.world.position.impl.sync.SyncExactPosition;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -144,9 +145,11 @@ public class BukkitListener implements Listener {
                             .stream(parameters)
                             .map(p -> p.getType().getSimpleName() + " " + p.getName())
                             .collect(Collectors.joining(", "));
-                    System.err.println("Failed to know what to do: HEvent found on method, but no known event on " + el
-                            .getClass()
-                            .getName() + "." + method.getName() + "(" + parameterNames + ")");
+                    TranslateCoreBoot
+                            .getBoot()
+                            .getSLF4JLogger()
+                            .error("Failed to know what to do: HEvent found on method, but no known event on {}.{}({})",
+                                   el.getClass().getName(), method.getName(), parameterNames);
                 }
                 if (class1.isAssignableFrom(classEvent)) {
                     methods.add(new BEventLaunch(key, el, method));
@@ -319,40 +322,20 @@ public class BukkitListener implements Listener {
 
         boolean front;
         BSignChangeEvent coreEvent;
-        try {
-            Object side = event.getClass().getMethod("getSide").invoke(event);
-            Object frontSide = side.getClass().getField("FRONT").get(null);
-            front = (side == frontSide);
 
-            Object signSide = sign.getClass().getDeclaredMethod("getSide", side.getClass()).invoke(sign, side);
-            Collection<Component> previousLines = (Collection<Component>) signSide
-                    .getClass()
-                    .getDeclaredMethod("lines")
-                    .invoke(signSide);
-            boolean previousGlowing = (boolean) signSide.getClass().getDeclaredMethod("isGlowingText").invoke(signSide);
-            FSignSideSnapshot previousSideSnapshot = (FSignSideSnapshot) snapshot.getSide(front);
-            previousSideSnapshot.setGlowing(previousGlowing);
-            previousSideSnapshot.setLines(previousLines);
+        Side side = event.getSide();
+        front = (side == Side.FRONT);
+        SignSide signSide = sign.getSide(side);
+        Collection<Component> previousLines = signSide.lines();
+        boolean previousGlowing = signSide.isGlowingText();
+        FSignSideSnapshot previousSideSnapshot = (FSignSideSnapshot) snapshot.getSide(front);
+        previousSideSnapshot.setGlowing(previousGlowing);
+        previousSideSnapshot.setLines(previousLines);
 
-            FSignSideSnapshot newSideSnapshot = new FSignSideSnapshot(snapshot, front, event.lines());
-            newSideSnapshot.setGlowing(previousGlowing);
+        FSignSideSnapshot newSideSnapshot = new FSignSideSnapshot(snapshot, front, event.lines());
+        newSideSnapshot.setGlowing(previousGlowing);
 
-            coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException |
-                 NoSuchFieldException ignore) {
-            List<Component> previousLines = sign.lines();
-            boolean glowing = Else.throwOr(Throwable.class,
-                                           () -> (boolean) sign.getClass().getMethod("isGlowingText").invoke(sign),
-                                           false);
-
-            FSignSideSnapshot previousSideSnapshot = new FSignSideSnapshot(snapshot, true, previousLines);
-            previousSideSnapshot.setGlowing(glowing);
-
-            FSignSideSnapshot newSideSnapshot = new FSignSideSnapshot(snapshot, true, event.lines());
-            newSideSnapshot.setGlowing(glowing);
-
-            coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
-        }
+        coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
 
         call(EventPriority.NORMAL, coreEvent);
         for (int line = 0; line < 4; line++) {

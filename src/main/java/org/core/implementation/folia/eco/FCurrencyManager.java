@@ -2,9 +2,9 @@ package org.core.implementation.folia.eco;
 
 import org.core.eco.Currency;
 import org.core.eco.CurrencyManager;
-import org.core.implementation.folia.eco.vault.VaultCurrencyManager;
 import org.core.eco.account.NamedAccount;
 import org.core.eco.account.PlayerAccount;
+import org.core.implementation.folia.eco.vault.VaultCurrencyManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,42 +20,42 @@ public class FCurrencyManager implements CurrencyManager {
 
     public FCurrencyManager() {
         if (VaultCurrencyManager.canUseVault()) {
-            using = new VaultCurrencyManager();
+            this.using = new VaultCurrencyManager();
             return;
         }
-        using = null;
+        this.using = null;
     }
 
     @Override
     public boolean areCurrenciesSupported() {
-        if (using == null) {
+        if (this.using == null) {
             return false;
         }
-        return using.areCurrenciesSupported();
+        return this.using.areCurrenciesSupported();
     }
 
     @Override
     public boolean isEconomyEnabled() {
-        if (using == null) {
+        if (this.using == null) {
             return false;
         }
-        return using.isEconomyEnabled();
+        return this.using.isEconomyEnabled();
     }
 
     @Override
     public @NotNull Currency getDefaultCurrency() {
-        if (using == null) {
+        if (this.using == null) {
             throw new IllegalStateException("Economy is not enabled");
         }
-        return using.getDefaultCurrency();
+        return this.using.getDefaultCurrency();
     }
 
     @Override
     public @NotNull Collection<Currency> getCurrencies() {
-        if (using == null) {
+        if (this.using == null) {
             return Collections.emptyList();
         }
-        return using.getCurrencies();
+        return this.using.getCurrencies();
     }
 
     @Override

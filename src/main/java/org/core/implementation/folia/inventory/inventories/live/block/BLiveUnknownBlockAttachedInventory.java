@@ -64,13 +64,13 @@ public class BLiveUnknownBlockAttachedInventory implements LiveUnknownBlockAttac
 
     @Override
     public Stream<Slot> getItemSlots() {
-        Inventory inventory = state.getSnapshotInventory();
+        Inventory inventory = this.state.getSnapshotInventory();
         return IntStream.range(0, inventory.getSize()).mapToObj(UnknownSlot::new);
     }
 
     @Override
     public Optional<Slot> getSlot(int slotPos) {
-        Inventory inventory = state.getSnapshotInventory();
+        Inventory inventory = this.state.getSnapshotInventory();
         if(inventory.getSize() >= slotPos){
             return Optional.empty();
         }

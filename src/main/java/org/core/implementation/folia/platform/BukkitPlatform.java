@@ -88,8 +88,8 @@ public class BukkitPlatform implements Platform {
     @Deprecated
     protected final Set<UnspecificParser<?>> parsers = new HashSet<>();
     private final BukkitStructurePlatform structurePlatform = new BukkitStructurePlatform();
-    private boolean enableDeveloperCommands;
     private final Collection<PlatformUpdate<?>> updateServices = new HashSet<>();
+    private boolean enableDeveloperCommands;
 
     public void init() {
         BukkitSpecificPlatform.getPlatforms().forEach(bsp -> {
@@ -403,7 +403,10 @@ public class BukkitPlatform implements Platform {
         return StreamSupport
                 .stream(Bukkit.getTags(Tag.REGISTRY_BLOCKS, Material.class).spliterator(), false)
                 .map(tag -> {
-                    String value = tag.getKey().toString().substring(tag.getKey().getNamespace().length() + 1);
+                    String value = tag.getKey().toString();
+                    if (value.equals(Tag.WOOL_CARPETS.getKey().toString())) {
+                        value = "minecraft:carpets";
+                    }
                     return new BBlockGroup(value, tag
                             .getValues()
                             .stream()

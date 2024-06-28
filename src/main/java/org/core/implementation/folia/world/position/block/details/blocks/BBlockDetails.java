@@ -87,6 +87,7 @@ public class BBlockDetails implements BlockDetails, IBBlockDetails {
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public BlockSnapshot.AsyncBlockSnapshot createSnapshot(ASyncBlockPosition position) {
         BlockSnapshot.AsyncBlockSnapshot snapshot = new AsyncBlockStateSnapshot(position, this.getBukkitData());
         if (this.tileEntitySnapshot != null) {

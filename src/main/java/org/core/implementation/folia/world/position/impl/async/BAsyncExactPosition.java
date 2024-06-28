@@ -21,6 +21,7 @@ import org.core.world.position.impl.sync.SyncPosition;
 
 import java.util.Optional;
 
+@Deprecated(forRemoval = true)
 public class BAsyncExactPosition extends BAbstractPosition<Double> implements ASyncExactPosition {
 
     private final Location location;

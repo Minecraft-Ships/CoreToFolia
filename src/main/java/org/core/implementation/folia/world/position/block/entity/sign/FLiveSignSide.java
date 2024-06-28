@@ -47,7 +47,7 @@ public class FLiveSignSide implements SignSide {
 
     @Override
     public boolean isGlowing() {
-        return this.sign.getSide(side).isGlowingText();
+        return this.sign.getSide(this.side).isGlowingText();
     }
 
     @Override

@@ -8,10 +8,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.function.Supplier;
 
-public class CrossVersionHelper {
+public final class CrossVersionHelper {
 
     private static final Singleton<CorePluginVersion> minecraftVersion = new Singleton<>(
             () -> TranslateCore.getPlatform().getMinecraftVersion());
+
+    private CrossVersionHelper() {
+        throw new RuntimeException("Do not create");
+    }
 
     public static <E extends Enum<E>> E enumOf(Class<E> enumClass,
                                                Supplier<String> useWhenGreater,

@@ -44,6 +44,7 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public ASyncExactPosition getAsyncPosition(double x, double y, double z) {
         return new BAsyncExactPosition(this.world, x, y, z);
     }
@@ -54,6 +55,7 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public ASyncBlockPosition getAsyncPosition(int x, int y, int z) {
         return new BAsyncBlockPosition(this.world, x, y, z);
     }

@@ -45,7 +45,7 @@ public class BSignEntitySnapshot implements SignTileEntitySnapshot {
 
     @Override
     public LiveSignTileEntity apply(LiveSignTileEntity lste) {
-        applyTo(lste.getFront());
+        this.applyTo(lste.getFront());
         lste.getBack().ifPresent(this::applyTo);
         return lste;
     }
@@ -68,7 +68,7 @@ public class BSignEntitySnapshot implements SignTileEntitySnapshot {
 
     @Override
     public SignSide getSide(boolean frontSide) {
-        return frontSide ? front : back;
+        return frontSide ? this.front : this.back;
     }
 
     @Override
