@@ -29,8 +29,14 @@ public class BNativeScheduler implements Scheduler.Native {
             ((BScheduleManager) TranslateCore.getScheduleManager()).unregister(BNativeScheduler.this);
             Scheduler scheduler = BNativeScheduler.this.runAfter;
             if (scheduler != null) {
-                if (scheduler instanceof BNativeScheduler) {
-                    ((BNativeScheduler) scheduler).parent = BNativeScheduler.this.parent;
+                if (scheduler instanceof BNativeScheduler internalScheduler) {
+                    internalScheduler.parent = BNativeScheduler.this.parent;
+                    if (BNativeScheduler.this.async && BNativeScheduler.this.maintainAsync && internalScheduler.async) {
+                        internalScheduler.runDirect();
+                        Bukkit.getScheduler().cancelTask(BNativeScheduler.this.task);
+                        BNativeScheduler.this.endTime = LocalTime.now();
+                        return;
+                    }
                 }
                 scheduler.run();
             }
@@ -65,6 +71,7 @@ public class BNativeScheduler implements Scheduler.Native {
     protected final @NotNull String displayName;
     protected final boolean async;
     protected final @NotNull Plugin plugin;
+    protected final boolean maintainAsync;
     private final ScheduleType scheduleType;
     protected @Nullable Scheduler runAfter;
     protected int task;
@@ -85,6 +92,7 @@ public class BNativeScheduler implements Scheduler.Native {
         this.plugin = plugin;
         this.displayName = builder.getDisplayName().orElseThrow(() -> new RuntimeException("No Displayname"));
         this.async = builder.isAsync();
+        this.maintainAsync = builder.willMaintainScheduleIfAsync();
         builder.getToRunAfter().ifPresent(s -> this.runAfter = s);
     }
 
@@ -142,6 +150,12 @@ public class BNativeScheduler implements Scheduler.Native {
     @Override
     public void cancel() {
         Bukkit.getScheduler().cancelTask(this.task);
+    }
+
+    private void runDirect() {
+        this.startSchedule = LocalTime.now();
+        Runnable runAfterScheduler = new RunAfterScheduler();
+        runAfterScheduler.run();
     }
 
     @Override

@@ -1,7 +1,5 @@
 package org.core.implementation.folia;
 
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.core.TranslateCore;
@@ -80,5 +78,10 @@ public class CoreToFolia extends TranslateCore.CoreImplementation {
     @Override
     public CurrencyManager getRawCurrencyManager() {
         return this.currencyManager;
+    }
+
+    @Override
+    public boolean isOnServerThreadRaw() {
+        return Bukkit.getServer().isPrimaryThread();
     }
 }
