@@ -62,7 +62,8 @@ public class BChunkExtent implements ChunkExtent {
     public Stream<LiveEntity> getLiveEntities() {
         return Arrays
                 .stream(this.chunk.getEntities())
-                .map(entity -> ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(entity));
+                .map(entity -> ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(entity))
+                .distinct();
     }
 
     @Override

@@ -1,7 +1,6 @@
 package org.core.implementation.folia.world;
 
 import org.bukkit.Chunk;
-import org.bukkit.block.BlockState;
 import org.core.TranslateCore;
 import org.core.entity.LiveEntity;
 import org.core.implementation.folia.platform.BukkitPlatform;
@@ -21,9 +20,10 @@ import org.core.world.position.impl.sync.SyncExactPosition;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BWorldExtent implements WorldExtent {
@@ -71,13 +71,13 @@ public class BWorldExtent implements WorldExtent {
                 .getEntities()
                 .stream()
                 .map(entity -> ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(entity))
-                .filter(Objects::nonNull);
+                .filter(Objects::nonNull)
+                .distinct();
     }
 
     @Override
     public Stream<LiveTileEntity> getLiveTileEntities() {
-        return this.getChunkExtents()
-                .flatMap(Extent::getLiveTileEntities);
+        return this.getChunkExtents().flatMap(Extent::getLiveTileEntities);
     }
 
     @Override
