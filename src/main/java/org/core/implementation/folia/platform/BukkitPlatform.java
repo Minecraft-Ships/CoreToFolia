@@ -4,8 +4,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Parrot;
 import org.bukkit.permissions.PermissionDefault;
 import org.core.TranslateCore;
@@ -32,6 +34,7 @@ import org.core.implementation.folia.platform.details.BukkitTranslatePlatformDet
 import org.core.implementation.folia.platform.plugin.BPlugin;
 import org.core.implementation.folia.platform.structure.BukkitStructurePlatform;
 import org.core.implementation.folia.platform.version.BukkitSpecificPlatform;
+import org.core.implementation.folia.utils.ClassMap;
 import org.core.implementation.folia.world.position.block.BBlockType;
 import org.core.implementation.folia.world.position.block.details.blocks.grouptype.BBlockGroup;
 import org.core.implementation.folia.world.position.block.entity.unknown.BLiveUnknownContainerTileEntity;
@@ -69,6 +72,7 @@ import org.core.world.structure.Structure;
 import org.core.world.structure.StructureBuilder;
 import org.core.world.structure.StructureFileBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,8 +86,12 @@ import java.util.stream.StreamSupport;
 public class BukkitPlatform implements Platform {
 
     protected final Set<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> entityTypes = new HashSet<>();
-    protected final Map<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>> entityToEntity = new HashMap<>();
-    protected final Map<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>> blockStateToTileEntity = new HashMap<>();
+    protected final ClassMap<Entity, LiveEntity, Throwable> entityToEntity = new ClassMap<>(
+            (instance, classMapping) -> classMapping.getConstructor(Entity.class).newInstance(instance));
+    protected final ClassMap<org.bukkit.block.BlockState, LiveTileEntity, Throwable> blockStateToTileEntity = new ClassMap<>(
+            (instance, mappedClass) -> mappedClass
+                    .getConstructor(org.bukkit.block.BlockState.class)
+                    .newInstance(instance));
     protected final Set<TileEntitySnapshot<? extends TileEntity>> defaultTileEntities = new HashSet<>();
     @Deprecated
     protected final Set<UnspecificParser<?>> parsers = new HashSet<>();
@@ -93,14 +101,14 @@ public class BukkitPlatform implements Platform {
 
     public void init() {
         BukkitSpecificPlatform.getPlatforms().forEach(bsp -> {
-            this.entityToEntity.putAll(bsp.getGeneralEntityToEntity());
+            this.entityToEntity.register(bsp.getGeneralEntityToEntity());
             this.entityTypes.addAll(bsp.getGeneralEntityTypes());
-            this.blockStateToTileEntity.putAll(bsp.getGeneralStateToTile());
+            this.blockStateToTileEntity.register(bsp.getGeneralStateToTile());
         });
         BukkitSpecificPlatform.getSpecificPlatform().ifPresent(bsp -> {
-            this.entityToEntity.putAll(bsp.getSpecificEntityToEntity());
+            this.entityToEntity.register(bsp.getSpecificEntityToEntity());
             this.entityTypes.addAll(bsp.getSpecificEntityTypes());
-            this.blockStateToTileEntity.putAll(bsp.getSpecificStateToTile());
+            this.blockStateToTileEntity.register(bsp.getSpecificStateToTile());
         });
 
         this.updateServices.add(new DevBukkitUpdateChecker());
@@ -131,11 +139,11 @@ public class BukkitPlatform implements Platform {
         throw new RuntimeException("Unknown projectile source of " + source.getClass().getSimpleName());
     }
 
-    public Map<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>> getBukkitBlockStateToCoreTileEntity() {
+    public ClassMap<BlockState, LiveTileEntity, Throwable> getBukkitBlockStateToCoreTileEntity() {
         return this.blockStateToTileEntity;
     }
 
-    public Map<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>> getBukkitEntityToCoreEntityMap() {
+    public ClassMap<Entity, LiveEntity, Throwable> getBukkitEntityToCoreEntityMap() {
         return this.entityToEntity;
     }
 
@@ -168,42 +176,26 @@ public class BukkitPlatform implements Platform {
     }
 
     public LiveEntity createEntityInstance(org.bukkit.entity.Entity entity) {
-        Optional<Map.Entry<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>>> opEntry = this.entityToEntity
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey().isInstance(entity))
-                .findAny();
-        if (opEntry.isEmpty()) {
-            return new UnknownLiveEntity<>(entity);
-        }
-        Class<? extends LiveEntity> bdclass = opEntry.get().getValue();
         try {
-            return bdclass.getConstructor(org.bukkit.entity.Entity.class).newInstance(entity);
-        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
-                 InvocationTargetException e) {
-            e.printStackTrace();
+            return this.entityToEntity.map(entity, () -> new UnknownLiveEntity<>(entity));
+        } catch (Throwable e) {
+            throw new RuntimeException(
+                    "Something went very wrong with entity " + entity.getName() + " | " + entity.getType().name(), e);
         }
-        throw new RuntimeException(
-                "Something went very wrong with entity " + entity.getName() + " | " + entity.getType().name());
     }
 
     public Optional<LiveTileEntity> createTileEntityInstance(org.bukkit.block.BlockState state) {
-        Optional<Map.Entry<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>>> opEntry = this.blockStateToTileEntity
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey().isInstance(state))
-                .findAny();
-        if (opEntry.isEmpty()) {
-            if (state instanceof org.bukkit.block.Container) {
-                return Optional.of(new BLiveUnknownContainerTileEntity((org.bukkit.block.Container) state));
-            }
-            return Optional.empty();
-        }
-        Class<? extends LiveTileEntity> bdclass = opEntry.get().getValue();
         try {
-            return Optional.of(bdclass.getConstructor(org.bukkit.block.BlockState.class).newInstance(state));
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
+            @Nullable LiveTileEntity mapping = this.blockStateToTileEntity.map(state, () -> {
+                if (state instanceof org.bukkit.block.Container) {
+                    return new BLiveUnknownContainerTileEntity((org.bukkit.block.Container) state);
+                }
+                return null;
+            });
+            if (mapping != null) {
+                return Optional.of(mapping);
+            }
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         return Optional.empty();
