@@ -69,8 +69,8 @@ boolean isGreater(int major, int minor) {
     var targetMinecraftVersion = project.hasProperty("folia-api-version") ? (String) project.property("folia-api-version") : "1.20.1"
     var targetMajorVersion = Integer.parseInt(targetMinecraftVersion.split(Pattern.quote('.'))[1])
     var targetMinorVersion = Integer.parseInt(targetMinecraftVersion.split(Pattern.quote('.'))[2])
-    if (targetMajorVersion < major) {
+    if (targetMajorVersion > major) {
         return true;
     }
-    return targetMajorVersion == major && targetMinorVersion <= minor;
+    return targetMajorVersion == major && targetMinorVersion >= minor;
 }
