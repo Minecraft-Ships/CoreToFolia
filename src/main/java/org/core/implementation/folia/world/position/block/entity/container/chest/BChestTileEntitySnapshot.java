@@ -11,6 +11,7 @@ import org.core.world.position.block.entity.container.chest.LiveChestTileEntity;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 public class BChestTileEntitySnapshot implements ChestTileEntitySnapshot {
 
@@ -31,8 +32,8 @@ public class BChestTileEntitySnapshot implements ChestTileEntitySnapshot {
     }
 
     @Override
-    public Collection<BlockType> getSupportedBlocks() {
-        return Arrays.asList(BlockTypes.CHEST, BlockTypes.TRAPPED_CHEST);
+    public Stream<BlockType> getApplicableBlocks() {
+        return Stream.of(BlockTypes.CHEST, BlockTypes.TRAPPED_CHEST);
     }
 
     @Override

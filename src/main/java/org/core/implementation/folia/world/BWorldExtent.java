@@ -1,7 +1,6 @@
 package org.core.implementation.folia.world;
 
 import org.bukkit.Chunk;
-import org.bukkit.block.BlockState;
 import org.core.TranslateCore;
 import org.core.entity.LiveEntity;
 import org.core.implementation.folia.platform.BukkitPlatform;
@@ -11,20 +10,20 @@ import org.core.implementation.folia.world.position.impl.sync.BBlockPosition;
 import org.core.implementation.folia.world.position.impl.sync.BExactPosition;
 import org.core.vector.type.Vector3;
 import org.core.world.ChunkExtent;
+import org.core.world.Extent;
 import org.core.world.WorldExtent;
 import org.core.world.position.block.entity.LiveTileEntity;
 import org.core.world.position.impl.async.ASyncBlockPosition;
 import org.core.world.position.impl.async.ASyncExactPosition;
 import org.core.world.position.impl.sync.SyncBlockPosition;
 import org.core.world.position.impl.sync.SyncExactPosition;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BWorldExtent implements WorldExtent {
@@ -45,6 +44,7 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public ASyncExactPosition getAsyncPosition(double x, double y, double z) {
         return new BAsyncExactPosition(this.world, x, y, z);
     }
@@ -55,6 +55,7 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public ASyncBlockPosition getAsyncPosition(int x, int y, int z) {
         return new BAsyncBlockPosition(this.world, x, y, z);
     }
@@ -65,28 +66,18 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
-    public Set<LiveEntity> getEntities() {
-        Set<LiveEntity> entities = new HashSet<>();
-        this.world.getEntities().forEach(e -> {
-            LiveEntity entity = ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(e);
-            if (entity == null) {
-                System.err.println("Entity could not be converted: " + e.getType().name() + " | " + e.getName());
-                return;
-            }
-            entities.add(entity);
-        });
-        return entities;
+    public Stream<LiveEntity> getLiveEntities() {
+        return this.world
+                .getEntities()
+                .stream()
+                .map(entity -> ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(entity))
+                .filter(Objects::nonNull)
+                .distinct();
     }
 
     @Override
-    public Set<LiveTileEntity> getTileEntities() {
-        Set<LiveTileEntity> set = new HashSet<>();
-        for (org.bukkit.Chunk chunk : this.world.getLoadedChunks()) {
-            for (BlockState state : chunk.getTileEntities()) {
-                ((BukkitPlatform) TranslateCore.getPlatform()).createTileEntityInstance(state).ifPresent(set::add);
-            }
-        }
-        return set;
+    public Stream<LiveTileEntity> getLiveTileEntities() {
+        return this.getChunkExtents().flatMap(Extent::getLiveTileEntities);
     }
 
     @Override
@@ -105,12 +96,12 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
-    public Set<ChunkExtent> getChunks() {
-        return Stream.of(this.world.getLoadedChunks()).map(BChunkExtent::new).collect(Collectors.toSet());
+    public Stream<ChunkExtent> getChunkExtents() {
+        return Stream.of(this.world.getLoadedChunks()).map(BChunkExtent::new);
     }
 
     @Override
-    public Optional<ChunkExtent> getChunk(Vector3<Integer> vector) {
+    public @NotNull Optional<ChunkExtent> getChunk(Vector3<Integer> vector) {
         Chunk chunk = this.world.getChunkAt(vector.getX(), vector.getZ());
         if (!chunk.isLoaded()) {
             return Optional.empty();
@@ -119,7 +110,7 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
-    public CompletableFuture<ChunkExtent> loadChunkAsynced(Vector3<Integer> vector) {
+    public @NotNull CompletableFuture<ChunkExtent> loadChunkAsynced(Vector3<Integer> vector) {
         try {
             CompletableFuture<Chunk> future = (CompletableFuture<Chunk>) this.world
                     .getClass()
@@ -133,7 +124,7 @@ public class BWorldExtent implements WorldExtent {
     }
 
     @Override
-    public ChunkExtent loadChunk(Vector3<Integer> vector) {
+    public @NotNull ChunkExtent loadChunk(Vector3<Integer> vector) {
         this.world.loadChunk(vector.getX(), vector.getZ());
         Chunk chunk = this.world.getChunkAt(vector.getX(), vector.getZ());
         return new BChunkExtent(chunk);

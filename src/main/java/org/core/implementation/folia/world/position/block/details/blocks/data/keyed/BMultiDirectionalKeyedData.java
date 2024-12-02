@@ -17,6 +17,7 @@ public class BMultiDirectionalKeyedData implements MultiDirectionalKeyedData {
         this.data = data;
     }
 
+    @SuppressWarnings("OptionalContainsCollection")
     @Override
     public Optional<Collection<Direction>> getData() {
         Collection<Direction> collection = new HashSet<>();

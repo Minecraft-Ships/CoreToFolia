@@ -59,8 +59,8 @@ public class TranslateCoreBoot extends JavaPlugin {
     }
 
     private CommandMap getCommandMap(PluginManager manager) throws Throwable {
-        return Else.throwMultiple(Throwable.class, () -> getModernCommandMap(manager),
-                                  () -> getLegacyCommandMap(manager));
+        return Else.throwMultiple(Throwable.class, () -> this.getModernCommandMap(manager),
+                                  () -> this.getLegacyCommandMap(manager));
     }
 
     @Override
@@ -76,7 +76,7 @@ public class TranslateCoreBoot extends JavaPlugin {
             PluginManager pluginManager = Bukkit.getPluginManager();
             try {
                 CommandMap map = this.getCommandMap(pluginManager);
-                ArgumentCommand[] translateCoreCommands = new ArgumentCommand[]{new TimingsCommand()};
+                ArgumentCommand[] translateCoreCommands = {new TimingsCommand()};
                 if (this.core.getRawPlatform().areDeveloperCommandsEnabled()) {
                     translateCoreCommands = new ArgumentCommand[]{new TimingsCommand(), new TasksCommand()};
                 }

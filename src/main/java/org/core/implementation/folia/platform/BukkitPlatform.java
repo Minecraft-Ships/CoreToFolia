@@ -4,9 +4,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.boss.BarColor;
+import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Parrot;
 import org.bukkit.permissions.PermissionDefault;
 import org.core.TranslateCore;
@@ -33,7 +34,7 @@ import org.core.implementation.folia.platform.details.BukkitTranslatePlatformDet
 import org.core.implementation.folia.platform.plugin.BPlugin;
 import org.core.implementation.folia.platform.structure.BukkitStructurePlatform;
 import org.core.implementation.folia.platform.version.BukkitSpecificPlatform;
-import org.core.implementation.folia.world.boss.colour.BBossColour;
+import org.core.implementation.folia.utils.ClassMap;
 import org.core.implementation.folia.world.position.block.BBlockType;
 import org.core.implementation.folia.world.position.block.details.blocks.grouptype.BBlockGroup;
 import org.core.implementation.folia.world.position.block.entity.unknown.BLiveUnknownContainerTileEntity;
@@ -55,8 +56,6 @@ import org.core.source.command.CommandSource;
 import org.core.source.projectile.ProjectileSource;
 import org.core.utils.Identifiable;
 import org.core.utils.Singleton;
-import org.core.world.boss.colour.BossColour;
-import org.core.world.boss.colour.BossColours;
 import org.core.world.position.Positionable;
 import org.core.world.position.block.BlockType;
 import org.core.world.position.block.entity.LiveTileEntity;
@@ -65,7 +64,6 @@ import org.core.world.position.block.entity.TileEntitySnapshot;
 import org.core.world.position.block.entity.banner.pattern.PatternLayerType;
 import org.core.world.position.block.entity.banner.pattern.PatternLayerTypes;
 import org.core.world.position.block.grouptype.BlockGroup;
-import org.core.world.position.block.grouptype.BlockGroups;
 import org.core.world.position.flags.physics.ApplyPhysicsFlag;
 import org.core.world.position.flags.physics.ApplyPhysicsFlags;
 import org.core.world.position.impl.sync.SyncBlockPosition;
@@ -74,6 +72,7 @@ import org.core.world.structure.Structure;
 import org.core.world.structure.StructureBuilder;
 import org.core.world.structure.StructureFileBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,56 +81,35 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class BukkitPlatform implements Platform {
 
     protected final Set<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> entityTypes = new HashSet<>();
-    protected final Map<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>> entityToEntity = new HashMap<>();
-    protected final Map<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>> blockStateToTileEntity = new HashMap<>();
+    protected final ClassMap<Entity, LiveEntity, Throwable> entityToEntity = new ClassMap<>(
+            (instance, classMapping) -> classMapping.getConstructor(Entity.class).newInstance(instance));
+    protected final ClassMap<org.bukkit.block.BlockState, LiveTileEntity, Throwable> blockStateToTileEntity = new ClassMap<>(
+            (instance, mappedClass) -> mappedClass
+                    .getConstructor(org.bukkit.block.BlockState.class)
+                    .newInstance(instance));
     protected final Set<TileEntitySnapshot<? extends TileEntity>> defaultTileEntities = new HashSet<>();
-    protected final Set<BlockGroup> blockGroups = new HashSet<>();
     @Deprecated
     protected final Set<UnspecificParser<?>> parsers = new HashSet<>();
-    protected final Set<BlockType> blockTypes = new HashSet<>();
-    protected final Set<ItemType> itemTypes = new HashSet<>();
     private final BukkitStructurePlatform structurePlatform = new BukkitStructurePlatform();
-    private boolean enableDeveloperCommands;
     private final Collection<PlatformUpdate<?>> updateServices = new HashSet<>();
+    private boolean enableDeveloperCommands;
 
     public void init() {
-        for (Material material : Material.values()) {
-            if (material.isLegacy()) {
-                continue;
-            }
-            if (material.isBlock()) {
-                BlockType type = new BBlockType(material);
-                this.blockTypes.add(type);
-            }
-            if (material.isItem()) {
-                this.itemTypes.add(new BItemType(material));
-            }
-        }
         BukkitSpecificPlatform.getPlatforms().forEach(bsp -> {
-            this.entityToEntity.putAll(bsp.getGeneralEntityToEntity());
+            this.entityToEntity.register(bsp.getGeneralEntityToEntity());
             this.entityTypes.addAll(bsp.getGeneralEntityTypes());
-            this.blockStateToTileEntity.putAll(bsp.getGeneralStateToTile());
+            this.blockStateToTileEntity.register(bsp.getGeneralStateToTile());
         });
         BukkitSpecificPlatform.getSpecificPlatform().ifPresent(bsp -> {
-            this.entityToEntity.putAll(bsp.getSpecificEntityToEntity());
+            this.entityToEntity.register(bsp.getSpecificEntityToEntity());
             this.entityTypes.addAll(bsp.getSpecificEntityTypes());
-            this.blockStateToTileEntity.putAll(bsp.getSpecificStateToTile());
+            this.blockStateToTileEntity.register(bsp.getSpecificStateToTile());
         });
-
-        Bukkit.getTags(Tag.REGISTRY_BLOCKS, Material.class).forEach(tag -> {
-            String value = tag.getKey().toString().substring(tag.getKey().getNamespace().length() + 1);
-            this.blockGroups.add(new BBlockGroup(value, tag
-                    .getValues()
-                    .stream()
-                    .map(BBlockType::new)
-                    .distinct()
-                    .toArray(BlockType[]::new)));
-        });
-        this.blockGroups.addAll(BlockGroups.values());
 
         this.updateServices.add(new DevBukkitUpdateChecker());
 
@@ -161,11 +139,11 @@ public class BukkitPlatform implements Platform {
         throw new RuntimeException("Unknown projectile source of " + source.getClass().getSimpleName());
     }
 
-    public Map<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>> getBukkitBlockStateToCoreTileEntity() {
+    public ClassMap<BlockState, LiveTileEntity, Throwable> getBukkitBlockStateToCoreTileEntity() {
         return this.blockStateToTileEntity;
     }
 
-    public Map<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>> getBukkitEntityToCoreEntityMap() {
+    public ClassMap<Entity, LiveEntity, Throwable> getBukkitEntityToCoreEntityMap() {
         return this.entityToEntity;
     }
 
@@ -198,42 +176,26 @@ public class BukkitPlatform implements Platform {
     }
 
     public LiveEntity createEntityInstance(org.bukkit.entity.Entity entity) {
-        Optional<Map.Entry<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>>> opEntry = this.entityToEntity
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey().isInstance(entity))
-                .findAny();
-        if (opEntry.isEmpty()) {
-            return new UnknownLiveEntity<>(entity);
-        }
-        Class<? extends LiveEntity> bdclass = opEntry.get().getValue();
         try {
-            return bdclass.getConstructor(org.bukkit.entity.Entity.class).newInstance(entity);
-        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException |
-                 InvocationTargetException e) {
-            e.printStackTrace();
+            return this.entityToEntity.map(entity, () -> new UnknownLiveEntity<>(entity));
+        } catch (Throwable e) {
+            throw new RuntimeException(
+                    "Something went very wrong with entity " + entity.getName() + " | " + entity.getType().name(), e);
         }
-        throw new RuntimeException(
-                "Something went very wrong with entity " + entity.getName() + " | " + entity.getType().name());
     }
 
     public Optional<LiveTileEntity> createTileEntityInstance(org.bukkit.block.BlockState state) {
-        Optional<Map.Entry<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>>> opEntry = this.blockStateToTileEntity
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey().isInstance(state))
-                .findAny();
-        if (opEntry.isEmpty()) {
-            if (state instanceof org.bukkit.block.Container) {
-                return Optional.of(new BLiveUnknownContainerTileEntity((org.bukkit.block.Container) state));
-            }
-            return Optional.empty();
-        }
-        Class<? extends LiveTileEntity> bdclass = opEntry.get().getValue();
         try {
-            return Optional.of(bdclass.getConstructor(org.bukkit.block.BlockState.class).newInstance(state));
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
+            @Nullable LiveTileEntity mapping = this.blockStateToTileEntity.map(state, () -> {
+                if (state instanceof org.bukkit.block.Container) {
+                    return new BLiveUnknownContainerTileEntity((org.bukkit.block.Container) state);
+                }
+                return null;
+            });
+            if (mapping != null) {
+                return Optional.of(mapping);
+            }
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         return Optional.empty();
@@ -268,16 +230,6 @@ public class BukkitPlatform implements Platform {
     @Override
     public @NotNull Collection<PlatformUpdate<?>> getUpdateCheckers() {
         return this.updateServices;
-    }
-
-    @Override
-    public @NotNull Singleton<BossColour> get(BossColours colours) {
-        return new Singleton<>(() -> Stream
-                .of(BarColor.values())
-                .filter(c -> c.name().equalsIgnoreCase(colours.getName()))
-                .findAny()
-                .map(BBossColour::new)
-                .orElseThrow(() -> new RuntimeException("Could not find bar colour of " + colours.getName())));
     }
 
     @Override
@@ -353,13 +305,13 @@ public class BukkitPlatform implements Platform {
 
     @Override
     public @NotNull Optional<BlockType> getBlockType(String id) {
-        return this.blockTypes.stream().filter(bt -> bt.getId().equals(id)).findAny();
+        return this.getAllBlockTypes().filter(bt -> bt.getId().equals(id)).findAny();
 
     }
 
     @Override
     public @NotNull Optional<ItemType> getItemType(String id) {
-        return this.itemTypes.stream().filter(it -> it.getId().equals(id)).findAny();
+        return this.getAllItemTypes().filter(it -> it.getId().equals(id)).findAny();
     }
 
     @Override
@@ -375,11 +327,6 @@ public class BukkitPlatform implements Platform {
 
     @Override
     public @NotNull Optional<PatternLayerType> getPatternLayerType(String id) {
-        return Optional.empty();
-    }
-
-    @Override
-    public @NotNull Optional<BossColour> getBossColour(String id) {
         return Optional.empty();
     }
 
@@ -406,18 +353,26 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Collection<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> getEntityTypes() {
-        return new HashSet<>(this.entityTypes);
+    public @NotNull Stream<EntityType<? extends LiveEntity, ? extends EntitySnapshot<? extends LiveEntity>>> getAllEntityTypes() {
+        return this.entityTypes.stream();
     }
 
     @Override
-    public @NotNull Collection<BlockType> getBlockTypes() {
-        return Collections.unmodifiableCollection(this.blockTypes);
+    public @NotNull Stream<BlockType> getAllBlockTypes() {
+        return Stream
+                .of(Material.values())
+                .filter(material -> !material.isLegacy())
+                .filter(Material::isBlock)
+                .map(BBlockType::new);
     }
 
     @Override
-    public @NotNull Collection<ItemType> getItemTypes() {
-        return Collections.unmodifiableCollection(this.itemTypes);
+    public @NotNull Stream<ItemType> getAllItemTypes() {
+        return Stream
+                .of(Material.values())
+                .filter(material -> !material.isLegacy())
+                .filter(Material::isItem)
+                .map(BItemType::new);
 
     }
 
@@ -436,13 +391,21 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Collection<BlockGroup> getBlockGroups() {
-        return this.blockGroups;
-    }
-
-    @Override
-    public @NotNull Collection<BossColour> getBossColours() {
-        return Stream.of(BarColor.values()).map(BBossColour::new).collect(Collectors.toSet());
+    public @NotNull Stream<BlockGroup> getAllBlockGroups() {
+        return StreamSupport
+                .stream(Bukkit.getTags(Tag.REGISTRY_BLOCKS, Material.class).spliterator(), false)
+                .map(tag -> {
+                    String value = tag.getKey().toString();
+                    if (value.equals(Tag.WOOL_CARPETS.getKey().toString())) {
+                        value = "minecraft:carpets";
+                    }
+                    return new BBlockGroup(value, tag
+                            .getValues()
+                            .stream()
+                            .map(BBlockType::new)
+                            .distinct()
+                            .toArray(BlockType[]::new));
+                });
     }
 
     @Override
@@ -459,14 +422,13 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Collection<Permission> getPermissions() {
+    public @NotNull Stream<Permission> getAllPermissions() {
         return Bukkit
                 .getServer()
                 .getPluginManager()
                 .getPermissions()
                 .parallelStream()
-                .map(p -> new BukkitPermission(p.getName()))
-                .collect(Collectors.toList());
+                .map(p -> new BukkitPermission(p.getName()));
     }
 
     @Override
@@ -565,8 +527,8 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public @NotNull Set<Plugin> getPlugins() {
-        return Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(BPlugin::new).collect(Collectors.toSet());
+    public @NotNull Stream<Plugin> getAllPlugins() {
+        return Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(BPlugin::new);
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BChestInventorySnapshot extends ChestInventorySnapshot {
 
@@ -20,22 +21,21 @@ public class BChestInventorySnapshot extends ChestInventorySnapshot {
 
     public BChestInventorySnapshot(ChestInventory inventory) {
         this.position = inventory.getPosition();
-        this.slots.addAll(inventory.getSlots().stream().map(Slot::createSnapshot).collect(Collectors.toSet()));
+        this.slots.addAll(inventory.getItemSlots().map(Slot::createSnapshot).collect(Collectors.toSet()));
     }
 
     @Override
     public Optional<Slot> getSlot(int slotPos) {
         return this
-                .getSlots()
-                .stream()
+                .getItemSlots()
                 .filter(s -> s.getPosition().isPresent())
                 .filter(s -> s.getPosition().get() == slotPos)
                 .findAny();
     }
 
     @Override
-    public Set<Slot> getSlots() {
-        return new HashSet<>(this.slots);
+    public Stream<Slot> getItemSlots() {
+        return this.slots.stream().map(slot -> slot);
     }
 
     @Override

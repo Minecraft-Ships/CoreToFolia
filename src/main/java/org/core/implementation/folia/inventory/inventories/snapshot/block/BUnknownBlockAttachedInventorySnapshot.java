@@ -12,22 +12,25 @@ import org.core.world.position.impl.sync.SyncBlockPosition;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BUnknownBlockAttachedInventorySnapshot implements UnknownBlockAttachedInventorySnapshot {
 
-    protected final Set<SlotSnapshot> slots = new HashSet<>();
+    protected final Set<SlotSnapshot> slots;
     protected final BlockType[] types;
     protected final SyncBlockPosition position;
 
     public BUnknownBlockAttachedInventorySnapshot(SyncBlockPosition position, BlockType... types) {
         this.types = types;
         this.position = position;
+        this.slots = new HashSet<>();
     }
 
     public BUnknownBlockAttachedInventorySnapshot(UnknownBlockAttachedInventory inv) {
         this.types = inv.getAllowedBlockType();
         this.position = inv.getPosition();
-        inv.getSlots().forEach(i -> BUnknownBlockAttachedInventorySnapshot.this.slots.add(i.createSnapshot()));
+        this.slots = inv.getItemSlots().map(Slot::createSnapshot).collect(Collectors.toSet());
     }
 
     @Override
@@ -41,15 +44,14 @@ public class BUnknownBlockAttachedInventorySnapshot implements UnknownBlockAttac
     }
 
     @Override
-    public Set<Slot> getSlots() {
-        return new HashSet<>(this.slots);
+    public Stream<Slot> getItemSlots() {
+        return this.slots.stream().map(item -> item);
     }
 
     @Override
     public Optional<Slot> getSlot(int slotPos) {
         return this
-                .getSlots()
-                .stream()
+                .getItemSlots()
                 .filter(s -> s.getPosition().isPresent())
                 .filter(s -> s.getPosition().get() == slotPos)
                 .findFirst();

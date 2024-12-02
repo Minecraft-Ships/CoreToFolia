@@ -1,5 +1,6 @@
 package org.core.implementation.folia.inventory.part.dispenser;
 
+import org.bukkit.inventory.Inventory;
 import org.core.implementation.folia.inventory.item.stack.BAbstractItemStack;
 import org.core.implementation.folia.inventory.item.stack.BLiveItemStack;
 import org.core.inventory.item.stack.ItemStack;
@@ -8,6 +9,8 @@ import org.core.inventory.parts.Slot;
 import org.core.inventory.parts.snapshot.Grid3x3Snapshot;
 
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public abstract class DispenserBasedGrid implements Grid3x3 {
 
@@ -51,19 +54,15 @@ public abstract class DispenserBasedGrid implements Grid3x3 {
         }
     }
 
-    protected final List<DispenserSlot> slots = new ArrayList<>();
-
     public DispenserBasedGrid() {
-        for (int index = 0; index < 9; index++) {
-            this.slots.add(new DispenserSlot(index));
-        }
     }
 
     protected abstract org.bukkit.block.Container getContainer();
 
     @Override
-    public Set<Slot> getSlots() {
-        return new HashSet<>(this.slots);
+    public Stream<Slot> getItemSlots() {
+        Inventory inventory = this.getContainer().getSnapshotInventory();
+        return IntStream.range(0, inventory.getSize()).mapToObj(DispenserSlot::new);
     }
 
     @Override

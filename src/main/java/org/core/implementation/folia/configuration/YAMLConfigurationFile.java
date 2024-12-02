@@ -6,6 +6,7 @@ import org.core.config.ConfigurationFormat;
 import org.core.config.ConfigurationNode;
 import org.core.config.ConfigurationStream;
 import org.core.config.parser.Parser;
+import org.core.implementation.folia.platform.plugin.boot.TranslateCoreBoot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,8 +134,11 @@ public class YAMLConfigurationFile implements ConfigurationStream.ConfigurationF
             try {
                 list.add(parser.unparse(value));
             } catch (ClassCastException e) {
-                System.err.println("Path: " + String.join(".", node.getPath()));
-                System.err.println("Value: (" + value.getClass().getName() + ") '" + value + "'");
+                TranslateCoreBoot.getBoot().getSLF4JLogger().error("Path: {}", String.join(".", node.getPath()));
+                TranslateCoreBoot
+                        .getBoot()
+                        .getSLF4JLogger()
+                        .error("Value: ({}) '{}'", value.getClass().getName(), value);
                 e.printStackTrace();
             }
         }

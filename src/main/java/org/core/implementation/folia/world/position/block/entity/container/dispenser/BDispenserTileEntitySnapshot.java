@@ -11,6 +11,7 @@ import org.core.world.position.block.entity.container.dispenser.LiveDispenserTil
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 public class BDispenserTileEntitySnapshot implements DispenserTileEntitySnapshot {
 
@@ -31,8 +32,8 @@ public class BDispenserTileEntitySnapshot implements DispenserTileEntitySnapshot
     }
 
     @Override
-    public Collection<BlockType> getSupportedBlocks() {
-        return Collections.singletonList(BlockTypes.DISPENSER);
+    public Stream<BlockType> getApplicableBlocks() {
+        return Stream.of(BlockTypes.DISPENSER);
     }
 
     @Override

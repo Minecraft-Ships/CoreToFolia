@@ -19,8 +19,7 @@ public class EntityExplosionSnapshot implements Explosion.ExplosionSnapshot, Exp
         this.source = explosion.getSource();
         this.position = explosion.getPosition();
         this.blocks = explosion
-                .getAffectedPositions()
-                .stream()
+                .getAffectedBlockPositions()
                 .map(b -> b.getBlockDetails().createCopyOf())
                 .collect(Collectors.toSet());
     }

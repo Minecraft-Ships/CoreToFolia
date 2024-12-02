@@ -33,10 +33,8 @@ import java.util.stream.Stream;
 public class BServer implements PlatformServer {
 
     @Override
-    public @NotNull Set<WorldExtent> getWorlds() {
-        Set<WorldExtent> set = new HashSet<>();
-        Bukkit.getWorlds().forEach(w -> set.add(new BWorldExtent(w)));
-        return set;
+    public @NotNull Stream<WorldExtent> getWorldExtents() {
+        return Bukkit.getWorlds().stream().map(BWorldExtent::new);
     }
 
     @Override
@@ -45,11 +43,14 @@ public class BServer implements PlatformServer {
     }
 
     @Override
-    public @NotNull Collection<LivePlayer> getOnlinePlayers() {
-        Set<LivePlayer> set = new HashSet<>();
+    public @NotNull Stream<LivePlayer> getLivePlayers() {
         BukkitPlatform platform = ((BukkitPlatform) TranslateCore.getPlatform());
-        Bukkit.getServer().getOnlinePlayers().forEach(p -> set.add((LivePlayer) platform.createEntityInstance(p)));
-        return set;
+        return Bukkit
+                .getServer()
+                .getOnlinePlayers()
+                .stream()
+                .map(platform::createEntityInstance)
+                .map(p -> (LivePlayer) p);
     }
 
     @Override
@@ -69,14 +70,14 @@ public class BServer implements PlatformServer {
                 .setRunner((sch) -> {
                     withTileEntities.forEach(bs -> bs.get(TileEntityKeyedData.class).ifPresent(tileEntity -> {
                         try {
-                            tileEntity.apply(Position.toSync(bs.getPosition()));
+                            tileEntity.apply(bs.getPosition().toSyncPosition());
                         } catch (BlockNotSupported e) {
                             throw new RuntimeException(e);
                         }
                     }));
                     onComplete.run();
                 })
-                .build(plugin);
+                .buildDelayed(plugin);
 
         Scheduler asyncedSchedule = TranslateCore
                 .getScheduleManager()
@@ -103,7 +104,7 @@ public class BServer implements PlatformServer {
                     syncedSchedule.run();
                 })
                 .setAsync(true)
-                .build(plugin);
+                .buildDelayed(plugin);
         asyncedSchedule.run();
 
     }

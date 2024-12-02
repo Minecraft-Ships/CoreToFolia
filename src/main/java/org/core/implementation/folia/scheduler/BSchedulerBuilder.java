@@ -19,6 +19,7 @@ public class BSchedulerBuilder implements SchedulerBuilder {
     protected TimeUnit iterationUnit;
     protected Consumer<Scheduler> executor;
     protected Scheduler runAfter;
+    protected boolean maintainAsync;
     protected String displayName;
     protected boolean async;
 
@@ -83,9 +84,15 @@ public class BSchedulerBuilder implements SchedulerBuilder {
     }
 
     @Override
-    public SchedulerBuilder setToRunAfter(Scheduler scheduler) {
+    public SchedulerBuilder setToRunAfter(Scheduler scheduler, boolean maintainIfAsync) {
         this.runAfter = scheduler;
+        this.maintainAsync = maintainIfAsync;
         return this;
+    }
+
+    @Override
+    public boolean willMaintainScheduleIfAsync() {
+        return this.maintainAsync;
     }
 
     @Override

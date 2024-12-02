@@ -21,6 +21,7 @@ import org.core.world.position.impl.sync.SyncPosition;
 
 import java.util.Optional;
 
+@Deprecated(forRemoval = true)
 public class BAsyncBlockPosition extends BAbstractPosition<Integer> implements ASyncBlockPosition {
 
     private final Block block;
@@ -48,6 +49,7 @@ public class BAsyncBlockPosition extends BAbstractPosition<Integer> implements A
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public ASyncExactPosition toExactPosition() {
         return new BAsyncExactPosition(this.block.getLocation());
     }

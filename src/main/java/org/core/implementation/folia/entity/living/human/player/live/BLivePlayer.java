@@ -5,19 +5,21 @@ import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.core.adventureText.AText;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.entity.living.human.player.PlayerSnapshot;
 import org.core.implementation.folia.entity.BLiveEntity;
 import org.core.implementation.folia.entity.living.human.player.snapshot.BPlayerSnapshot;
 import org.core.implementation.folia.inventory.inventories.live.entity.BLivePlayerInventory;
+import org.core.implementation.folia.world.position.block.details.blocks.BBlockDetails;
 import org.core.implementation.folia.world.position.impl.sync.BBlockPosition;
 import org.core.inventory.inventories.general.entity.PlayerInventory;
 import org.core.permission.Permission;
+import org.core.vector.type.Vector3;
+import org.core.world.position.block.details.BlockDetails;
 import org.core.world.position.impl.BlockPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,6 +122,13 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, Forw
     }
 
     @Override
+    public void setBlock(@NotNull BlockDetails details, @NotNull Vector3<Integer> position) {
+        var data = ((BBlockDetails) details).getBukkitData();
+        this.entity.sendBlockChange(
+                new Location(this.entity.getWorld(), position.getX(), position.getY(), position.getZ()), data);
+    }
+
+    @Override
     public boolean hasPermission(Permission permission) {
         return this.getBukkitEntity().hasPermission(permission.getPermissionValue());
     }
@@ -147,20 +156,6 @@ public class BLivePlayer extends BLiveEntity<Player> implements LivePlayer, Forw
     @Override
     public BLivePlayer setGravity(boolean check) {
         this.getBukkitEntity().setGravity(check);
-        return this;
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public LivePlayer sendMessage(AText message, UUID uuid) {
-        this.getBukkitEntity().sendMessage(uuid, message.toLegacy());
-        return this;
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public LivePlayer sendMessage(AText message) {
-        this.sendMessage((ComponentLike) message);
         return this;
     }
 
