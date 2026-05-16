@@ -157,4 +157,9 @@ public abstract class BLiveEntity<T extends org.bukkit.entity.Entity> implements
     public void remove() {
         this.entity.remove();
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "[Type: " + this.entity.getType().name() + ", Pos:" + this.getPosition().getPosition() + ", World: " + this.getPosition().getWorld().getName() + "]";
+    }
 }

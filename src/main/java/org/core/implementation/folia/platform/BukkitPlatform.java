@@ -8,6 +8,7 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Parrot;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
 import org.core.TranslateCore;
 import org.core.config.ConfigurationFormat;
@@ -198,6 +199,10 @@ public class BukkitPlatform implements Platform {
     }
 
     public LiveEntity createEntityInstance(org.bukkit.entity.Entity entity) {
+        if(entity instanceof Player player){
+            return new BLivePlayer(player);
+        }
+
         Optional<Map.Entry<Class<? extends org.bukkit.entity.Entity>, Class<? extends LiveEntity>>> opEntry = this.entityToEntity
                 .entrySet()
                 .stream()
