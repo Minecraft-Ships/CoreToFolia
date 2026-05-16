@@ -1,8 +1,6 @@
 package org.core.implementation.folia.world.position.block.entity.sign;
 
 import org.bukkit.block.Sign;
-import org.core.adventureText.AText;
-import org.core.adventureText.adventure.AdventureText;
 import org.core.implementation.folia.world.position.block.entity.AbstractLiveTileEntity;
 import org.core.world.position.block.entity.sign.LiveSignTileEntity;
 import org.core.world.position.block.entity.sign.SignSide;
@@ -48,24 +46,5 @@ public class BSignEntity extends AbstractLiveTileEntity implements LiveSignTileE
     public boolean isMultiSideSupported() {
         //TODO
         return false;
-    }
-
-    @Override
-    @Deprecated
-    public List<AText> getText() {
-        return this.getBukkitSign().lines().stream().map(AdventureText::new).collect(Collectors.toList());
-    }
-
-    @Override
-    @Deprecated
-    public SignTileEntity setText(Collection<? extends AText> text) {
-        int i = 0;
-        Sign sign = this.getBukkitSign();
-        for (AText line : text) {
-            sign.line(i, ((AdventureText) line).getComponent());
-            i++;
-        }
-        sign.update(true, false);
-        return this;
     }
 }

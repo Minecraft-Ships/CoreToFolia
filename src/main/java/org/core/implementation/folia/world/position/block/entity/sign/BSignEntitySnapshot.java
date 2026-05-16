@@ -1,8 +1,6 @@
 package org.core.implementation.folia.world.position.block.entity.sign;
 
 import net.kyori.adventure.text.Component;
-import org.core.adventureText.AText;
-import org.core.adventureText.adventure.AdventureText;
 import org.core.utils.ComponentUtils;
 import org.core.utils.Else;
 import org.core.world.position.block.BlockType;
@@ -79,22 +77,5 @@ public class BSignEntitySnapshot implements SignTileEntitySnapshot {
             return true;*/
             return false;
         }, false);
-    }
-
-    @Override
-    public List<AText> getText() {
-        return this.getFront().getLines().stream().map(AdventureText::new).collect(Collectors.toList());
-    }
-
-    @Override
-    public SignTileEntity setText(Collection<? extends AText> text) {
-        List<Component> lines = text.stream().map(t -> {
-            if (t instanceof AdventureText adventureText) {
-                return adventureText.getComponent();
-            }
-            return ComponentUtils.fromLegacy(t.toLegacy());
-        }).collect(Collectors.toList());
-        this.getFront().setLines(lines);
-        return this;
     }
 }

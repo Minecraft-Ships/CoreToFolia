@@ -1,5 +1,6 @@
 package org.core.implementation.folia.platform.plugin.loader;
 
+import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -174,6 +175,11 @@ public class CoreBukkitPluginWrapper implements org.bukkit.plugin.Plugin {
     }
 
     @Override
+    public @NotNull LifecycleEventManager<Plugin> getLifecycleManager() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
     @Deprecated
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
@@ -190,5 +196,10 @@ public class CoreBukkitPluginWrapper implements org.bukkit.plugin.Plugin {
                                       @NotNull String alias,
                                       @NotNull String[] args) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public @NotNull String namespace() {
+        return this.plugin.getPluginId();
     }
 }

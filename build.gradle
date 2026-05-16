@@ -1,5 +1,3 @@
-import java.util.regex.Pattern
-
 plugins {
     id 'java-library'
 }
@@ -7,7 +5,7 @@ plugins {
 repositories {
     mavenLocal()
     maven {
-        url = uri('https://papermc.io/repo/repository/maven-public/')
+        url = uri(project.property("PAPER_REPO"))
     }
 
     maven {
@@ -23,15 +21,10 @@ group = 'org.ships'
 version = '1.0-SNAPSHOT'
 description = 'CoreToFolia'
 
-var targetMinecraftVersion = project.hasProperty("folia-api-version") ? (String) project.property("folia-api-version") : "1.20.1"
-var targetMajorVersion = Integer.parseInt(targetMinecraftVersion.split(Pattern.quote('.'))[1])
-var targetMinorVersion = Integer.parseInt(targetMinecraftVersion.split(Pattern.quote('.'))[2])
-
-var targetJavaVersion = isGreater(20, 5) ? 21 : 17
-
 java {
-    sourceCompatibility = JavaLanguageVersion.of(targetJavaVersion);
-    targetCompatibility = JavaLanguageVersion.of(targetJavaVersion);
+    var javaVersion = Integer.parseInt(project.property("JAVA_VERSION"))
+    sourceCompatibility = JavaLanguageVersion.of(javaVersion);
+    targetCompatibility = JavaLanguageVersion.of(javaVersion);
 }
 
 compileJava.options.encoding = 'UTF-8'
@@ -46,12 +39,8 @@ jar {
 }
 
 dependencies {
-    if (project.hasProperty("folia-api-version") && project.hasProperty("use-paper") && project.property("use-paper").toString().equals("true")) {
-        compileOnly 'io.papermc.paper:paper-api:' + project.property("folia-api-version") + "-R0.1-SNAPSHOT"
-    } else {
-        compileOnly 'dev.folia:folia-api:' + targetMinecraftVersion + '-R0.1-SNAPSHOT'
-        System.out.println("To specify a Folia build, use ' -P folia-api-version=1.20.1")
-    }
+    compileOnly("io.papermc.paper:paper-api:" + property("PAPER_VERSION") + ".build.+")
+    compileOnly 'net.kyori:adventure-api:5.1.1'
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7', { exclude group: 'org.bukkit', module: 'bukkit' }
     try {
         api project(":TranslateCore")
@@ -59,18 +48,4 @@ dependencies {
         System.out.println("Could not find subModule of ShipsCore, using jit instead")
         api 'com.github.Minecraft-Ships:TranslateCore:master-SNAPSHOT'
     }
-    compileOnly group: 'net.kyori', name: 'examination-api', version: '1.1.0'
-    compileOnly group: 'net.kyori', name: 'adventure-api', version: '4.7.0'
-    compileOnly 'net.kyori:adventure-text-serializer-legacy:4.7.0'
-    compileOnly 'net.kyori:adventure-text-serializer-plain:4.7.0'
-}
-
-boolean isGreater(int major, int minor) {
-    var targetMinecraftVersion = project.hasProperty("folia-api-version") ? (String) project.property("folia-api-version") : "1.20.1"
-    var targetMajorVersion = Integer.parseInt(targetMinecraftVersion.split(Pattern.quote('.'))[1])
-    var targetMinorVersion = Integer.parseInt(targetMinecraftVersion.split(Pattern.quote('.'))[2])
-    if (targetMajorVersion < major) {
-        return true;
-    }
-    return targetMajorVersion == major && targetMinorVersion <= minor;
 }
