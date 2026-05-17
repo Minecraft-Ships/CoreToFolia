@@ -1,6 +1,8 @@
 package org.core.implementation.folia.world.position.block.entity.skull;
 
 import org.core.entity.living.human.player.User;
+import org.core.implementation.folia.world.position.block.entity.AbstractTileEntitySnapshot;
+import org.core.implementation.folia.world.position.block.entity.CommonTileEntity;
 import org.core.world.position.block.BlockType;
 import org.core.world.position.block.entity.TileEntity;
 import org.core.world.position.block.entity.TileEntitySnapshot;
@@ -14,16 +16,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 
-public class BSkullSnapshot implements SkullSnapshot {
+public class BSkullSnapshot extends AbstractTileEntitySnapshot<LiveSkull> implements SkullSnapshot {
 
     private User owner;
 
     public BSkullSnapshot(Skull skull) {
+        super(((CommonTileEntity)skull).bukkitState());
         this.owner = skull.getOwner().orElse(null);
-    }
-
-    public BSkullSnapshot(User user) {
-        this.owner = user;
     }
 
     @Override

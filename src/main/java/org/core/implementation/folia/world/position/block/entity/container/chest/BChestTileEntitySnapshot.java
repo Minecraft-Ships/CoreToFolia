@@ -1,6 +1,8 @@
 package org.core.implementation.folia.world.position.block.entity.container.chest;
 
 import org.core.implementation.folia.inventory.inventories.snapshot.block.BChestInventorySnapshot;
+import org.core.implementation.folia.world.position.block.entity.AbstractTileEntitySnapshot;
+import org.core.implementation.folia.world.position.block.entity.CommonTileEntity;
 import org.core.inventory.inventories.general.block.ChestInventory;
 import org.core.inventory.inventories.snapshots.block.ChestInventorySnapshot;
 import org.core.world.position.block.BlockType;
@@ -12,15 +14,12 @@ import org.core.world.position.block.entity.container.chest.LiveChestTileEntity;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class BChestTileEntitySnapshot implements ChestTileEntitySnapshot {
+public class BChestTileEntitySnapshot extends AbstractTileEntitySnapshot<LiveChestTileEntity> implements ChestTileEntitySnapshot {
 
     protected final ChestInventorySnapshot inventory;
 
-    public BChestTileEntitySnapshot() {
-        this.inventory = new BChestInventorySnapshot();
-    }
-
     public BChestTileEntitySnapshot(@SuppressWarnings("TypeMayBeWeakened") ChestTileEntity cte) {
+        super(((CommonTileEntity)cte).bukkitState());
         this.inventory = cte.getInventory().createSnapshot();
     }
 

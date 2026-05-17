@@ -1,6 +1,8 @@
 package org.core.implementation.folia.world.position.block.entity.unknown;
 
 import org.core.implementation.folia.inventory.inventories.snapshot.block.BUnknownBlockAttachedInventorySnapshot;
+import org.core.implementation.folia.world.position.block.entity.AbstractTileEntitySnapshot;
+import org.core.implementation.folia.world.position.block.entity.CommonTileEntity;
 import org.core.inventory.inventories.general.block.UnknownBlockAttachedInventory;
 import org.core.inventory.inventories.snapshots.block.UnknownBlockAttachedInventorySnapshot;
 import org.core.world.position.block.BlockType;
@@ -12,20 +14,28 @@ import org.core.world.position.impl.sync.SyncBlockPosition;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class BUnknownContainerTileEntitySnapshot implements UnknownContainerTileEntitySnapshot {
+public class BUnknownContainerTileEntitySnapshot extends AbstractTileEntitySnapshot<LiveUnknownContainerTileEntity>
+        implements UnknownContainerTileEntitySnapshot {
 
     protected final UnknownBlockAttachedInventorySnapshot inventory;
 
     public BUnknownContainerTileEntitySnapshot(SyncBlockPosition position, BlockType... types) {
+        super(position
+                      .getTileEntity()
+                      .map(tileEntity -> (CommonTileEntity) tileEntity)
+                      .map(CommonTileEntity::bukkitState)
+                      .orElseThrow(() -> new IllegalStateException("Cannot get state")));
         this.inventory = new BUnknownBlockAttachedInventorySnapshot(position, types);
     }
 
     public BUnknownContainerTileEntitySnapshot(@SuppressWarnings("TypeMayBeWeakened") UnknownContainerTiledEntity entity) {
+        super(((CommonTileEntity) entity).bukkitState());
         this.inventory = entity.getInventory().createSnapshot();
     }
 
     @Override
     public LiveUnknownContainerTileEntity apply(LiveUnknownContainerTileEntity lucte) {
+        super.apply(lucte);
         this.inventory.apply(lucte.getInventory());
         return lucte;
     }

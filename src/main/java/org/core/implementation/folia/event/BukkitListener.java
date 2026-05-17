@@ -6,6 +6,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,17 +41,16 @@ import org.core.implementation.folia.world.expload.EntityExplosion;
 import org.core.implementation.folia.world.expload.EntityExplosionSnapshot;
 import org.core.implementation.folia.world.position.block.details.blocks.BBlockDetails;
 import org.core.implementation.folia.world.position.block.details.blocks.BlockStateSnapshot;
-import org.core.implementation.folia.world.position.block.entity.sign.BSignEntitySnapshot;
-import org.core.implementation.folia.world.position.block.entity.sign.FSignSideSnapshot;
+import org.core.implementation.folia.world.position.block.entity.sign.BSignEntity;
 import org.core.implementation.folia.world.position.impl.sync.BBlockPosition;
 import org.core.implementation.folia.world.position.impl.sync.BExactPosition;
-import org.core.utils.Else;
 import org.core.world.position.block.details.BlockDetails;
 import org.core.world.position.block.details.BlockSnapshot;
+import org.core.world.position.block.entity.sign.SignSide;
+import org.core.world.position.block.entity.sign.SignTileEntitySnapshot;
 import org.core.world.position.impl.sync.SyncBlockPosition;
 import org.core.world.position.impl.sync.SyncExactPosition;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -314,44 +314,15 @@ public class BukkitListener implements Listener {
         LivePlayer player = (LivePlayer) ((BukkitPlatform) TranslateCore.getPlatform()).createEntityInstance(
                 event.getPlayer());
         SyncBlockPosition position = new BBlockPosition(event.getBlock());
+        SignTileEntitySnapshot previousSnapshot = new BSignEntity(sign).getSnapshot();
+        SignSide previousSide = previousSnapshot.getSide(event.getSide() == Side.FRONT);
+        SignTileEntitySnapshot newSnapshot = previousSnapshot.getSnapshot();
+        SignSide newSide = newSnapshot.getSide(event.getSide() == Side.FRONT);
+        newSide.setLines(event.lines());
 
-        BSignEntitySnapshot snapshot = new BSignEntitySnapshot();
-
-        boolean front;
-        BSignChangeEvent coreEvent;
-        try {
-            Object side = event.getClass().getMethod("getSide").invoke(event);
-            Object frontSide = side.getClass().getField("FRONT").get(null);
-            front = (side == frontSide);
-
-            Object signSide = sign.getClass().getDeclaredMethod("getSide", side.getClass()).invoke(sign, side);
-            Collection<Component> previousLines = (Collection<Component>) signSide
-                    .getClass()
-                    .getDeclaredMethod("lines")
-                    .invoke(signSide);
-            boolean previousGlowing = (boolean) signSide.getClass().getDeclaredMethod("isGlowingText").invoke(signSide);
-            FSignSideSnapshot previousSideSnapshot = (FSignSideSnapshot) snapshot.getSide(front);
-            previousSideSnapshot.setGlowing(previousGlowing);
-            previousSideSnapshot.setLines(previousLines);
-
-            FSignSideSnapshot newSideSnapshot = new FSignSideSnapshot(snapshot, front, event.lines());
-            newSideSnapshot.setGlowing(previousGlowing);
-
-            coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException |
-                 NoSuchFieldException ignore) {
-            List<Component> previousLines = sign.lines();
-            boolean glowing = Else.throwOr(Throwable.class,
-                                           () -> (boolean) sign.getClass().getMethod("isGlowingText").invoke(sign),
-                                           false);
-
-            FSignSideSnapshot previousSideSnapshot = new FSignSideSnapshot(snapshot, true, previousLines);
-            previousSideSnapshot.setGlowing(glowing);
-
-            FSignSideSnapshot newSideSnapshot = new FSignSideSnapshot(snapshot, true, event.lines());
-            newSideSnapshot.setGlowing(glowing);
-
-            coreEvent = new BSignChangeEvent(player, position, previousSideSnapshot, newSideSnapshot);
+        BSignChangeEvent coreEvent = new BSignChangeEvent(player, position, previousSide, newSide);
+        if (coreEvent.getPreviousSide().equals(coreEvent.getChangingSide())) {
+            return;
         }
 
         call(EventPriority.NORMAL, coreEvent);

@@ -1,6 +1,8 @@
 package org.core.implementation.folia.world.position.block.entity.container.dispenser;
 
 import org.core.implementation.folia.inventory.inventories.snapshot.block.dispenser.BDispenserInventorySnapshot;
+import org.core.implementation.folia.world.position.block.entity.AbstractTileEntitySnapshot;
+import org.core.implementation.folia.world.position.block.entity.CommonTileEntity;
 import org.core.inventory.inventories.general.block.dispenser.DispenserInventory;
 import org.core.inventory.inventories.snapshots.block.dispenser.DispenserInventorySnapshot;
 import org.core.world.position.block.BlockType;
@@ -12,15 +14,12 @@ import org.core.world.position.block.entity.container.dispenser.LiveDispenserTil
 import java.util.Collection;
 import java.util.Collections;
 
-public class BDispenserTileEntitySnapshot implements DispenserTileEntitySnapshot {
+public class BDispenserTileEntitySnapshot extends AbstractTileEntitySnapshot<LiveDispenserTileEntity> implements DispenserTileEntitySnapshot {
 
     protected final DispenserInventorySnapshot dis;
 
-    public BDispenserTileEntitySnapshot() {
-        this.dis = new BDispenserInventorySnapshot();
-    }
-
     public BDispenserTileEntitySnapshot(@SuppressWarnings("TypeMayBeWeakened") DispenserTileEntity dte) {
+        super(((CommonTileEntity)dte).bukkitState());
         this.dis = dte.getInventory().createSnapshot();
     }
 

@@ -12,16 +12,16 @@ import java.util.List;
 
 public class BSignChangeEvent implements SignChangeEvent.ByPlayer {
 
-    protected final FSignSideSnapshot original;
+    protected final SignSide original;
     protected final SyncBlockPosition position;
     protected final LivePlayer player;
-    private final FSignSideSnapshot to;
+    private final SignSide to;
     protected boolean isCancelled;
 
     public BSignChangeEvent(LivePlayer player,
                             SyncBlockPosition position,
-                            FSignSideSnapshot previous,
-                            FSignSideSnapshot to) {
+                            SignSide previous,
+                            SignSide to) {
         this.position = position;
         this.original = previous;
         this.player = player;
@@ -30,7 +30,7 @@ public class BSignChangeEvent implements SignChangeEvent.ByPlayer {
 
     @Override
     public SignTileEntitySnapshot getSign() {
-        return this.original.getSign();
+        return this.original.getSign().getSnapshot();
     }
 
     @Override

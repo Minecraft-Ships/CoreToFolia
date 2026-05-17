@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.block.TileState;
 import org.bukkit.boss.BarColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -38,6 +39,7 @@ import org.core.implementation.folia.world.boss.colour.BBossColour;
 import org.core.implementation.folia.world.position.block.BBlockType;
 import org.core.implementation.folia.world.position.block.details.blocks.grouptype.BBlockGroup;
 import org.core.implementation.folia.world.position.block.entity.unknown.BLiveUnknownContainerTileEntity;
+import org.core.implementation.folia.world.position.block.entity.unknown.BLiveUnknownTileEntity;
 import org.core.implementation.folia.world.position.flags.BApplyPhysicsFlag;
 import org.core.implementation.folia.world.position.impl.BAbstractPosition;
 import org.core.inventory.item.ItemType;
@@ -78,6 +80,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -96,8 +99,8 @@ public class BukkitPlatform implements Platform {
     protected final Set<BlockType> blockTypes = new HashSet<>();
     protected final Set<ItemType> itemTypes = new HashSet<>();
     private final BukkitStructurePlatform structurePlatform = new BukkitStructurePlatform();
-    private boolean enableDeveloperCommands;
     private final Collection<PlatformUpdate<?>> updateServices = new HashSet<>();
+    private boolean enableDeveloperCommands;
 
     public void init() {
         for (Material material : Material.values()) {
@@ -199,7 +202,7 @@ public class BukkitPlatform implements Platform {
     }
 
     public LiveEntity createEntityInstance(org.bukkit.entity.Entity entity) {
-        if(entity instanceof Player player){
+        if (entity instanceof Player player) {
             return new BLivePlayer(player);
         }
 
@@ -223,6 +226,9 @@ public class BukkitPlatform implements Platform {
     }
 
     public Optional<LiveTileEntity> createTileEntityInstance(org.bukkit.block.BlockState state) {
+        if (!(state instanceof TileState tileState)) {
+            return Optional.empty();
+        }
         Optional<Map.Entry<Class<? extends org.bukkit.block.BlockState>, Class<? extends LiveTileEntity>>> opEntry = this.blockStateToTileEntity
                 .entrySet()
                 .stream()
@@ -232,13 +238,18 @@ public class BukkitPlatform implements Platform {
             if (state instanceof org.bukkit.block.Container) {
                 return Optional.of(new BLiveUnknownContainerTileEntity((org.bukkit.block.Container) state));
             }
-            return Optional.empty();
+            return Optional.of(new BLiveUnknownTileEntity(tileState));
         }
         Class<? extends LiveTileEntity> bdclass = opEntry.get().getValue();
         try {
-            return Optional.of(bdclass.getConstructor(org.bukkit.block.BlockState.class).newInstance(state));
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
+            Constructor<?> constructor = Stream
+                    .of(bdclass.getConstructors())
+                    .filter(cons -> cons.getParameterCount() == 1)
+                    .filter(cons -> cons.getParameterTypes()[0].isInstance(tileState))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Cannot find blockstate constructor"));
+            return Optional.of((LiveTileEntity) constructor.newInstance(tileState));
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         return Optional.empty();
@@ -287,7 +298,7 @@ public class BukkitPlatform implements Platform {
 
     @Override
     public @NotNull Singleton<ApplyPhysicsFlag> get(ApplyPhysicsFlags flags) {
-        if (flags.getName().equals("None")) {
+        if ("None".equals(flags.getName())) {
             return new Singleton<>(() -> BApplyPhysicsFlag.NONE);
         }
         return new Singleton<>(() -> BApplyPhysicsFlag.DEFAULT);

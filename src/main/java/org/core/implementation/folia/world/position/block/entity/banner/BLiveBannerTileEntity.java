@@ -1,6 +1,6 @@
 package org.core.implementation.folia.world.position.block.entity.banner;
 
-import org.bukkit.block.BlockState;
+import org.bukkit.block.TileState;
 import org.core.implementation.folia.world.position.block.entity.AbstractLiveTileEntity;
 import org.core.implementation.folia.world.position.block.entity.banner.pattern.BPatternLayers;
 import org.core.world.position.block.entity.banner.BannerTileEntitySnapshot;
@@ -9,7 +9,7 @@ import org.core.world.position.block.entity.banner.pattern.PatternLayers;
 
 public class BLiveBannerTileEntity extends AbstractLiveTileEntity implements LiveBannerTileEntity {
 
-    public BLiveBannerTileEntity(BlockState state) {
+    public BLiveBannerTileEntity(TileState state) {
         super(state);
     }
 

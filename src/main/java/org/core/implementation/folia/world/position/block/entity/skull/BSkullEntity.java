@@ -2,6 +2,7 @@ package org.core.implementation.folia.world.position.block.entity.skull;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.TileState;
 import org.core.entity.living.human.player.User;
 import org.core.implementation.folia.entity.living.human.player.live.BUser;
 import org.core.implementation.folia.world.position.block.entity.AbstractLiveTileEntity;
@@ -14,7 +15,7 @@ import java.util.Optional;
 
 public class BSkullEntity extends AbstractLiveTileEntity implements LiveSkull {
 
-    public BSkullEntity(BlockState state) {
+    public BSkullEntity(TileState state) {
         super(state);
     }
 

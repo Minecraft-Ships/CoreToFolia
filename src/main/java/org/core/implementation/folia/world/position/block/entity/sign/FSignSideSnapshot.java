@@ -56,4 +56,22 @@ public class FSignSideSnapshot implements SignSide {
     public void setGlowing(boolean glowing) {
         this.isGlowing = glowing;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof FSignSideSnapshot signSide)){
+            return false;
+        }
+
+        if(signSide.isFront != this.isFront){
+            return false;
+        }
+        if(signSide.isGlowing != this.isGlowing){
+            return false;
+        }
+        if(!signSide.lines.equals(this.lines)){
+            return false;
+        }
+        return true;
+    }
 }

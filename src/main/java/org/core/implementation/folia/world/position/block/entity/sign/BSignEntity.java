@@ -1,15 +1,9 @@
 package org.core.implementation.folia.world.position.block.entity.sign;
 
-import org.bukkit.block.Sign;
 import org.core.implementation.folia.world.position.block.entity.AbstractLiveTileEntity;
 import org.core.world.position.block.entity.sign.LiveSignTileEntity;
 import org.core.world.position.block.entity.sign.SignSide;
-import org.core.world.position.block.entity.sign.SignTileEntity;
 import org.core.world.position.block.entity.sign.SignTileEntitySnapshot;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class BSignEntity extends AbstractLiveTileEntity implements LiveSignTileEntity {
 
@@ -33,18 +27,12 @@ public class BSignEntity extends AbstractLiveTileEntity implements LiveSignTileE
 
     @Override
     public SignSide getSide(boolean frontSide) {
-        if (this.isMultiSideSupported()) {
-            //TODO
-        }
-        if (frontSide) {
-            return new FLiveLegacySignSide(this.getBukkitSign());
-        }
-        throw new IllegalStateException("multi-sign is only supported on 1.20+");
+        return new FSignEntitySide(this, frontSide);
     }
 
     @Override
     public boolean isMultiSideSupported() {
-        //TODO
-        return false;
+        return true;
     }
+
 }

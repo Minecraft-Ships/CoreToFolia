@@ -1,7 +1,7 @@
 package org.core.implementation.folia.world.position.block.entity.container.furnace;
 
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Furnace;
+import org.bukkit.block.TileState;
 import org.core.implementation.folia.inventory.inventories.live.block.BLiveFurnaceInventory;
 import org.core.implementation.folia.world.position.block.entity.AbstractLiveTileEntity;
 import org.core.world.position.block.entity.container.furnace.FurnaceTileEntitySnapshot;
@@ -9,7 +9,7 @@ import org.core.world.position.block.entity.container.furnace.LiveFurnaceTileEnt
 
 public class BFurnaceEntity extends AbstractLiveTileEntity implements LiveFurnaceTileEntity {
 
-    public BFurnaceEntity(BlockState state) {
+    public BFurnaceEntity(TileState state) {
         super(state);
     }
 

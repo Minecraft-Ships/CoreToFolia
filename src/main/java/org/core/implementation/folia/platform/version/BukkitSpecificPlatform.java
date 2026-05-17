@@ -25,6 +25,10 @@ public interface BukkitSpecificPlatform {
                 set.add(new Specific1V14Platform());
             }
         }
+        if(version.getMajor() >= 26){
+            set.add(new Specific1V13Platform());
+            set.add(new Specific1V14Platform());
+        }
         return set;
     }
 
